@@ -1,0 +1,22 @@
+<article class="collection">
+
+  {% if collection-list-item == 'linklist' %}
+    {% assign link_handle = link.handle %}
+    {% assign collection = collections[link_handle] %}
+  {% endif %}
+
+  {% if collection.image %}
+    {% assign collectionImage = collection.image %}
+  {% else %}
+    {% assign collectionImage = collection.products.first %}
+  {% endif %}
+
+  <a class="collection-image" href="{{ collection.url }}" style="background-image:url({{ collectionImage | img_url: 'grande'  }})">
+    <span class="browse-cover" data-label="{{ 'collections.listing.browse' | t }}"></span>
+  </a>
+
+  <h3 class="collection-title">
+    <a href="{{ collection.url }}">{{ collection.title }}</a>
+  </h3>
+
+</article>

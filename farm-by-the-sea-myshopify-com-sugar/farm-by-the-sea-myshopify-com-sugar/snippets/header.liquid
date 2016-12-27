@@ -1,0 +1,103 @@
+<header class="main-header" role="banner">
+  <div class="header-inner">
+
+  <div class="nav-toggle">
+    <button class="nav-toggle-button">
+      <span></span>
+    </button>
+  </div>
+
+  <div class="branding">
+    {% if settings.use-logo %}
+      <a class="logo" href="/">
+        <img class="logo-regular" alt="{{ shop.name | escape }}" src="{{ 'logo.png' | asset_url }}">
+      </a>
+    {% else %}
+      <h1><a href="/">{{ shop.name }}</a></h1>
+    {% endif %}
+  </div>
+
+  <div class="header-utilities">
+
+    {% if shop.customer_accounts_enabled %}
+      <div class="customer-account">
+        <a class="customer-account-link" href="/account">&#xe611;</a>
+        <div class="drop-account float-box">
+          <ul class="account-links">
+            {% if customer %}
+              <li><a href="/account">{{ 'layout.header.my_account' | t }}</a></li>
+              <li><a href="/account/orders">{{ 'layout.header.account_purchases' | t }}</a></li>
+              <li>{{ 'layout.header.account_logout' | t | customer_logout_link }}</li>
+            {% else %}
+              <li>{{ 'layout.header.account_login' | t | customer_login_link }}</li>
+              <li><a href="/account/register">{{ 'layout.header.account_register' | t }}</a></li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    {% endif %}
+
+    <div id="coin-container"></div>
+
+    <div class="shopping-cart-wrap {% if cart.items == blank %}empty-cart{% endif %}">
+      <a class="cart-count" href="/cart">
+        <span class="cart-text">
+          {% if cart.total_price == 0 %}
+            {{ "0.00" | money }} ({{ cart.item_count }})
+          {% else %}
+            <span class="money">{{ cart.total_price | money }}</span> <span class="cart-item-count">({{ cart.item_count }})</span>
+          {% endif %}
+        </span>
+      </a>
+      <div class="drop-cart float-box">
+        {% for item in cart.items %}
+          <div id="item-{{ item.id }}" class="item" data-variant="{{ item.variant.id }}">
+            <div class="item-inner">
+              <img alt="{{ item.product.title }}" src="{{ item | img_url: 'small' }}">
+              <div class="details">
+                <p class="brand">{{ item.vendor | link_to_vendor }}</p>
+                <p class="title"><a href="{{ item.url }}">{{ item.product.title }}</a></p>
+                {% unless item.variant.title == 'Default Title' %}
+                  <p class="variant">{{ item.variant.title }}</p>
+                {% endunless %}
+
+                {% if item.properties %}
+                  <div class="properties">
+                    {% for property in item.properties %}
+                      {% unless property.last == blank %}
+                        <div class="property">
+                          <span class="property-label">{{ property.first }}:</span>
+                          {% if property.last contains '/uploads/' %}
+                            <a class="property-image" href="{{ property.last }}">{{ property.last | split: '/' | last }}</a>
+                          {% else %}
+                            <span class="property-value">{{ property.last }}</span>
+                          {% endif %}
+                        </div>
+                      {% endunless %}
+                    {% endfor %}
+                  </div>
+                {% endif %}
+
+                <p class="price"><span class="quantity">× <span class="count">{{ item.quantity }}</span></span> | <span class="money">{{ item.line_price | money }}</span></p>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+        <div class="cart-tools">
+          <a href="/cart">{{ 'layout.header.view_cart' | t }}</a>
+          <a href="/checkout">{{ 'layout.header.checkout' | t }}</a>
+        </div>
+      </div>
+    </div>
+
+    <form class="header-search-form" action="/search" method="get">
+      <span class="search-icon"></span>
+      <span class="clear-icon"></span>
+      <input class="search-input" name="q" type="text" placeholder="{{ layout.header.search_placeholder | t }}" value="{{ search.terms }}" autocomplete="off" />
+      <div class="live-search float-box"></div>
+    </form>
+
+  </div>
+
+  </div>
+</header>

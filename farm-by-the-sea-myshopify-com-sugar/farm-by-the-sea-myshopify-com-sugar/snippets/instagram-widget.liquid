@@ -1,0 +1,18 @@
+{% if settings.instagram-widget-access-token != blank %}
+
+  <div class="instagram-widget layout-{{ settings.instagram-widget-layout }}">
+    {% if settings.instagram-widget-title != blank %}
+      <h3 class="section-title">{{ settings.instagram-widget-title }}</h3>
+    {% endif %}
+    <div class="instagram-photos"></div>
+  </div>
+
+{% else %}
+
+  <section class="onboarding">
+    <h2>{{ 'onboarding.instagram_widget.title' | t }}</h2>
+    <p>{{ 'onboarding.instagram_widget.subtitle' | t }}</p>
+    <a href="/admin/themes/{{ theme.id }}/editor" target="_blank">{{ 'onboarding.general.settings_page_link' | t }}</a>
+  </section>
+
+{% endif %}

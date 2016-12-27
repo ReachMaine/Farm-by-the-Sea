@@ -1,0 +1,68 @@
+<script>
+  Theme = {}
+  Theme.version = "1.4.4";
+  Theme.products = {};
+  Theme.moneyFormat = {{ shop.money_format | strip_html | json }};
+
+  Theme.addToCartText = "{{ 'products.product.add_to_cart' | t | escape }}";
+  Theme.soldOutText = "{{ 'products.product.sold_out' | t | escape }}";
+  Theme.unavailableText = "{{'products.product.unavailable' | t | escape }}";
+  Theme.processingText = "{{ 'products.product.processing' | t | escape }}";
+  Theme.cartCountLabels = {
+    singular: "{{ 'layout.header.cart_item_count' | t: count: 1 }}",
+    plural: "{{ 'layout.header.cart_item_count' | t: count: 2 }}"
+  };
+
+  {% if shop.customer_accounts_enabled and customer %}
+    Theme.customerLoggedIn = true;
+  {% endif %}
+
+  {% if settings.show-shipping-calculator and cart.requires_shipping %}
+    Theme.shippingCalculator = true;
+    Theme.shippingButton = "{{ 'cart.shipping_calculator.submit' | t | escape }}";
+    Theme.shippingDisabled = "{{ 'cart.shipping_calculator.disabled' | t | escape }}";
+
+    {% if shop.customer_accounts_enabled and customer and customer.addresses.size > 0 %}
+      Theme.customerCountry  = {{ customer.default_address | json }};
+    {% endif %}
+
+    Theme.shippingCalcErrorMessage = "{{ 'cart.shipping_calculator.error' | t | escape }}";
+    Theme.shippingCalcMultiRates = "{{ 'cart.shipping_calculator.rates_html' | t | escape }}";
+    Theme.shippingCalcOneRate = "{{ 'cart.shipping_calculator.rate' | t | escape }}";
+    Theme.shippingCalcNoRates = "{{ 'cart.shipping_calculator.no_rates' | t | escape }}";
+    Theme.shippingCalcRateValues = "{{ 'cart.shipping_calculator.rate_values_html' | t | escape }}";
+  {% endif %}
+
+  {% if settings.product-enable-zoom %}
+    Theme.imageZoom = true;
+  {% endif %}
+
+  {% if settings.enable-slideshow %}
+    Theme.slideshow = true;
+
+    {% if settings.slideshow-autoplay %}
+      Theme.slideshowAutoplay = true;
+      Theme.slideshowAutoplayDelay = 4;
+        {% if settings.slideshow-autoplay-delay != blank %}
+          Theme.slideshowAutoplayDelay = parseInt('{{ settings.slideshow-autoplay-delay | escape }}',10);
+        {% endif %}
+    {% endif %}
+  {% endif %}
+
+  {% if settings.enable-instagram-widget and settings.instagram-widget-access-token != blank %}
+    Theme.instagram = true;
+    Theme.instagramAccessToken = '{{ settings.instagram-widget-access-token | escape }}';
+    Theme.instagramShowTag = {{ settings.enable-instagram-tag | json }};
+    Theme.instagramTag = '{{ settings.instagram-widget-tag | escape }}';
+  {% endif %}
+
+  {% if settings.enable-twitter-widget and settings.twitter-widget-id != blank %}
+    Theme.twitter = true;
+    Theme.twitterId = '{{ settings.twitter-widget-id | escape }}';
+    Theme.twitterShowRetweets = {{ settings.twitter-widget-retweets | json }};
+  {% endif %}
+
+  Theme.itemRemovedFromCart = "{{ 'cart.general.item_removed_message' | t | escape }}";
+  Theme.itemRemovedFromCartUndo = "{{ 'cart.general.undo' | t | escape }}";
+
+</script>

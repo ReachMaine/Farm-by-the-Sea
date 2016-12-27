@@ -1,0 +1,45 @@
+{% comment %}
+  Outputs link list items, with the ability to repeat itself as needed
+  Additional elements in place for mobile navigation
+{% endcomment %}
+
+{% capture link_handle %}{{ link.title | handle }}{% endcapture %}
+{% assign hasChildren = false %}
+{% if linklists[link_handle] and linklists[link_handle].links.size > 0 %}
+  {% assign hasChildren = true %}
+{% endif %}
+
+{% if navigation-items == 'secondary-menu' %}
+  {% assign hasChildren = false %}
+{% endif %}
+
+<li class="navigation-item {% if forloop.index > 5 and navigation-items != 'main-menu' %}hidden{% endif %}">
+  {% if hasChildren %}
+    <a href="{{ link.url }}" class="parent-link {% if link.active %}current menu-open{% endif %}">
+      <span class="link-title">{{ link.title }}</span>
+      <span class="toggle-menu" data-open="&#43;" data-close="&ndash;">{% if link.active %}&ndash;{% else %}&#43;{% endif %}</span>
+      <span class="go-forward">&#xe614;</span>
+    </a>
+    <ul class="{% unless link.active %}hidden{% endunless %}">
+      <li class="back-link">
+        <a>
+          <span class="go-backward">&#xe613;</span>
+          <span class="link-title">{{ link.title }}</span>
+        </a>
+      </li>
+      {% for link in linklists[link_handle].links %}
+        {% include 'navigation-items' with 'secondary-menu' %}
+      {% endfor %}
+    </ul>
+  {% else %}
+     <a href="{{ link.url }}" class="{% if link.active %}current{% endif %}">{{ link.title }}</a>
+  {% endif %}
+</li>
+
+{% if forloop.length > 5 and navigation-items != 'main-menu' %}
+  {% if forloop.index == 5 %}
+    <li class="navigation-item navigation-show-more">{{ 'layout.sidebar.show_more' | t }}</li>
+  {% elsif forloop.last %}
+    <li class="navigation-item navigation-show-less hidden">{{ 'layout.sidebar.show_less' | t }}</li>
+  {% endif %}
+{% endif %}

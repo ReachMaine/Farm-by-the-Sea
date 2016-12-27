@@ -1,0 +1,38 @@
+{% assign fetchProductsCount = settings.related-products-count | plus: 1 %}
+
+{% if collection == null or collection.handle == "frontpage" or collection.handle == "all" %}
+  {% assign foundCollection = false %}
+  {% for currentCollection in product.collections %}
+    {% if foundCollection == false and currentCollection.handle != "frontpage" and currentCollection.handle != "all" %}
+      {% assign foundCollection = true %}
+      {% assign collection = currentCollection %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+{% if collection.products.size > 1 %}
+
+  <section class="related-products-wrapper">
+
+    <h2 class="section-title">{{ "products.related_products.header" | t }}</h2>
+
+    <div class="related-products">
+      <div class="double-wrapper">
+        {% assign currentProductFound = false %}
+        {% for prod in collection.products limit: fetchProductsCount %}
+          {% if prod.title == product.title %}
+            {% assign currentProductFound = true %}
+          {% else %}
+            {% unless currentProductFound == false and forloop.last %}
+              {% include "product-list-item" %}
+            {% endunless %}
+            {% unless forloop.last %}
+              {% cycle '', '</div><div class="double-wrapper">' %}
+            {% endunless %}
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+{% endif %}

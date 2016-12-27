@@ -1,0 +1,43 @@
+<h1 class="page-title">
+  {% if current_tags %}<a href="{{ blog.url }}">{% endif %}
+  {{ blog.title }}
+  {% if current_tags %}</a>{% endif %}
+  <a class="blog-rss" href="{{ blog.url }}.atom">&#xE626;</a>
+</h1>
+
+{% if blog.tags.size > 0 %}
+  <div class="blog-tags-wrapper">
+    <div class="blog-tags-filter-toggle">
+      <span>{{ 'blogs.blog.filter_by_tag' | t }}</span>
+    </div>
+    <div class="blog-tags">
+      {% for tag in blog.tags %}
+        {{ tag | link_to_tag: tag }}
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+{% if current_tags %}
+  <h2>{{ 'blogs.blog.posts_tagged' | t: tag: current_tags.first }}</h2>
+{% endif %}
+
+{% paginate blog.articles by 5 %}
+
+  <div class="blog-posts">
+    {% for article in blog.articles %}
+      {% include 'article-list-item' %}
+    {% else %}
+      <span class="empty">{{ 'blogs.blog.empty' | t }}</span>
+    {% endfor %}
+  </div>
+
+  {% if paginate.previous or paginate.next %}
+    {% include 'pagination' %}
+  {% endif %}
+
+{% endpaginate %}
+
+{% if settings.subscribe-show-listings %}
+  {% include 'newsletter' %}
+{% endif %}

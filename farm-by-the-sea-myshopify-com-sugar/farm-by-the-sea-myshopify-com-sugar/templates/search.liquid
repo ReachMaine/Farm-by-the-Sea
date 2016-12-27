@@ -1,0 +1,64 @@
+<h1 class="page-title">
+  {% if search.performed %}
+    {{ 'general.search.header_search_performed' | t }}
+  {% else %}
+    {{ 'general.search.header' | t }}
+  {% endif %}
+</h1>
+
+<form class="search-form" action="/search" method="get">
+  <div class="search-field">
+    <input class="search-input" name="q" type="text" placeholder="{{ 'general.search.search_placeholder' | t }}" value="{{ search.terms }}" />
+  </div>
+  <input type="submit" value="{{ 'general.search.submit' | t }}" />
+</form>
+
+{% paginate search.results by 10 %}
+  <div class="search-results-wrapper">
+
+    {% if search.performed %}
+      {% if search.results.size > 0 %}
+        <p class="search-results-label">{{ 'general.search.search_results' | t: search_terms: search.terms }}</p>
+      {% else %}
+        <p class="search-results-label">{{ 'general.search.search_results_empty' | t: search_terms: search.terms }}</p>
+      {% endif %}
+
+      <div class="search-results">
+        {% for item in search.results %}
+          <div class="search-results-item {% if item.featured_image %}has-image{% endif %}">
+
+              {% if item.object_type == 'product' %}
+                <a href="{{ item.url }}">
+                  <img alt="{{ item.image.alt | escape }}" src="{{ item | img_url: 'medium' }}">
+                </a>
+              {% elsif item.object_type == 'article' and item.image %}
+                <a href="{{ item.url }}">
+                  <img alt="{{ item.title | escape }}" src="{{ item.image | img_url: 'medium' }}">
+                </a>
+              {% endif %}
+
+              <div class="search-results-data">
+                <h3><a class="search-results-link" href="{{ item.url }}">{{ item.title }}</a></h3>
+
+                {% if item.object_type == 'product' %}
+                  <p class="subtitle money">
+                    {{ item.price | money }}
+                  </p>
+                {% elsif item.object_type == 'article' %}
+                  <p class="subtitle">
+                    {{ item.published_at | date: format: "full_date" }}
+                  </p>
+                {% endif %}
+              </div>
+
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if paginate.previous or paginate.next %}
+        {% include 'pagination' %}
+      {% endif %}
+
+    {% endif %}
+  </div>
+{% endpaginate %}

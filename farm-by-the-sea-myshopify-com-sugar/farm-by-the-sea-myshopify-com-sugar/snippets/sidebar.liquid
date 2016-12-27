@@ -1,0 +1,47 @@
+<aside class="main-sidebar">
+
+  <nav class="navigation sidebar">
+
+    <div class="overflow-container">
+      <ul>
+        {% for link in linklists.main-menu.links %}
+          {% include 'navigation-items' with 'main-menu' %}
+        {% endfor %}
+        {% if shop.customer_accounts_enabled %}
+          <li><a href="/account">Account</a></li>
+        {% endif %}
+      </ul>
+    </div>
+
+    <div id="coin-container"></div>
+
+    <ul class="social-icons">
+      {% assign socialAccounts = 'social-instagram-url|social-facebook-url|social-twitter-url|social-google-url|social-pinterest-url|social-kickstarter-url|social-vimeo-url|social-youtube-url|social-email-address|social-rss-url' | split: '|' %}
+      {% for account in socialAccounts %}
+        {% if settings[account] != blank %}
+          {% assign accountName = account | split: "-" %}
+          {% assign accountName = accountName[1] %}
+          <li class="social-link {{ accountName }}">
+            <a href="{{ settings[account] }}" target="_blank"></a>
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+
+    {% if settings.sidebar-enable-info and settings.sidebar-info-text != blank %}
+      <div class="info-box">
+        {% if settings.sidebar-show-shop-name %}
+          <h4>{{ shop.name }}</h4>
+        {% endif %}
+        <div class="info">
+          <p>{{ settings.sidebar-info-text | newline_to_br | replace: "<br/>", "</p><p>" }}</p>
+        </div>
+      </div>
+    {% endif %}
+
+  </nav>
+
+  <nav class="cart sidebar">
+  </nav>
+
+</aside>

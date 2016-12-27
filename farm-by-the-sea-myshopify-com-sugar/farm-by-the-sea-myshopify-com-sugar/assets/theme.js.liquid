@@ -1,0 +1,1711 @@
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  window.Site = {};
+
+  Site.ThemeView = (function(superClass) {
+    extend(ThemeView, superClass);
+
+    function ThemeView() {
+      return ThemeView.__super__.constructor.apply(this, arguments);
+    }
+
+    ThemeView.prototype.el = document.body;
+
+    ThemeView.prototype.initialize = function() {
+      var body;
+      body = $(document.body);
+      this.adminUI = {
+        bar: $("#admin_bar_iframe"),
+        isExpanded: function() {
+          return this.bar.css("left") === "0px";
+        }
+      };
+      this.ltIE9 = $("html").hasClass("lt-ie9");
+      this.is404 = body.hasClass("template-404");
+      this.ltIE10 = $("html").hasClass("lt-ie10");
+      this.isHome = body.hasClass("template-index");
+      this.isCart = body.hasClass("template-cart");
+      this.isPage = body.hasClass("template-page");
+      this.isBlog = body.hasClass("template-blog");
+      this.isProduct = body.hasClass("template-product");
+      this.isAccount = body.attr("class").indexOf("-customers-") > 0;
+      this.isPassword = body.hasClass("template-password");
+      this.isGiftCardPage = body.hasClass("gift-card-template");
+      this.hasQuickShop = body.hasClass("quick-shop");
+      this.isCollection = body.hasClass("template-collection");
+      return this.isAdmin = this.adminUI.bar.length !== -1;
+    };
+
+    ThemeView.prototype.render = function() {
+      var i, j, k, len, len1, len2, product, ref, ref1, ref2, rte, select;
+      this.headerView = new Site.HeaderView({
+        el: $(".main-header")
+      });
+      this.sidebarView = new Site.SidebarView({
+        el: $(".main-sidebar")
+      });
+      if (this.isHome) {
+        new Site.HomeView({
+          el: this.$el
+        });
+      }
+      if (this.isCollection) {
+        new Site.CollectionView({
+          el: this.$el
+        });
+      }
+      if (this.isProduct) {
+        new Site.ProductView({
+          el: this.$el
+        });
+      }
+      if (this.isCart) {
+        new Site.CartView({
+          el: this.$el
+        });
+      }
+      if (this.isAccount) {
+        new Site.AccountView({
+          el: this.$el
+        });
+      }
+      if (this.isBlog) {
+        new Site.BlogView({
+          el: this.$el
+        });
+      }
+      if (this.is404) {
+        new Site.NotFoundView({
+          el: this.$el
+        });
+      }
+      if (this.isPassword) {
+        new Site.PasswordView({
+          el: this.$el
+        });
+      }
+      if (this.isGiftCardPage) {
+        new GiftCardView();
+      }
+      if (this.hasQuickShop) {
+        ref = $(".product-list-item");
+        for (i = 0, len = ref.length; i < len; i++) {
+          product = ref[i];
+          new Site.QuickShopView({
+            el: product
+          });
+        }
+      }
+      if (this.ltIE10) {
+        this.inputPlaceholderFix();
+      }
+      ref1 = $(".rte");
+      for (j = 0, len1 = ref1.length; j < len1; j++) {
+        rte = ref1[j];
+        new Site.RTEView({
+          el: rte
+        });
+      }
+      ref2 = $("select");
+      for (k = 0, len2 = ref2.length; k < len2; k++) {
+        select = ref2[k];
+        new Site.SelectView({
+          el: select
+        });
+      }
+      return $(window).on("resize", (function(_this) {
+        return function() {
+          _this.isMobileWindow = document.documentElement.offsetWidth <= 940;
+          return _this.sidebarView.pageResize();
+        };
+      })(this)).trigger("resize");
+    };
+
+    ThemeView.prototype.inputPlaceholderFix = function() {
+      var i, input, len, placeholders, text;
+      placeholders = $("[placeholder]");
+      for (i = 0, len = placeholders.length; i < len; i++) {
+        input = placeholders[i];
+        input = $(input);
+        if (!(input.val().length > 0)) {
+          text = input.attr("placeholder");
+          input.attr("value", text);
+          input.data("original-text", text);
+        }
+      }
+      placeholders.focus(function() {
+        input = $(this);
+        if (input.val() === input.data("original-text")) {
+          return input.val("");
+        }
+      });
+      return placeholders.blur(function() {
+        input = $(this);
+        if (input.val().length === 0) {
+          return input.val(input.data("original-text"));
+        }
+      });
+    };
+
+    return ThemeView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.SearchView = (function(superClass) {
+    extend(SearchView, superClass);
+
+    function SearchView() {
+      return SearchView.__super__.constructor.apply(this, arguments);
+    }
+
+    SearchView.prototype.events = {
+      "focus .search-input": "inputDidFocus",
+      "blur .search-input": "inputDidBlur",
+      "keyup .search-input": "inputKeyPressed",
+      "click .clear-icon": "clearButtonPressed"
+    };
+
+    SearchView.prototype.initialize = function() {
+      this.input = this.$(".search-input");
+      this.liveContainer = this.$(".live-search");
+      return this.currentSearchRequest = void 0;
+    };
+
+    SearchView.prototype.inputDidFocus = function() {
+      return this.$el.addClass("search-active");
+    };
+
+    SearchView.prototype.inputDidBlur = function() {
+      return this.$el.removeClass("search-active");
+    };
+
+    SearchView.prototype.inputKeyPressed = function() {
+      var clear, value;
+      clear = this.$(".search-clear");
+      value = this.input.val();
+      if (value.length > 0) {
+        this.$el.addClass("clear-active");
+        if (value.length > 1) {
+          return this.requestLiveSearch(value);
+        }
+      } else {
+        this.$el.removeClass("clear-active");
+        this.cancelLiveSearch();
+        return this.liveContainer.removeClass("visible").html("");
+      }
+    };
+
+    SearchView.prototype.clearButtonPressed = function() {
+      this.input.val("").focus();
+      this.inputKeyPressed();
+      return this.liveContainer.removeClass("visible").html("");
+    };
+
+    SearchView.prototype.cancelLiveSearch = function() {
+      if (this.currentSearchRequest) {
+        return this.currentSearchRequest.abort();
+      }
+    };
+
+    SearchView.prototype.requestLiveSearch = function(query) {
+      this.cancelLiveSearch();
+      return this.currentSearchRequest = $.getJSON("/search?type=product&q=*" + query + "*&view=json", (function(_this) {
+        return function(data) {
+          var i, item, len, price, ref;
+          if (data && data.results.length) {
+            _this.liveContainer.html("");
+            ref = data.results;
+            for (i = 0, len = ref.length; i < len; i++) {
+              item = ref[i];
+              price = Shopify.formatMoney(item.price, Theme.moneyFormat);
+              _this.liveContainer.append("<a class=\"live-result\" href=\"//" + Shopify.shop + item.url + "\">\n    <figure class=\"live-result-image\">\n        <img src=\"" + item.thumbnail + "\" />\n    </figure>\n    <span class=\"live-result-details\">\n        " + item.title + "\n        <b>" + price + "</b>\n    </span>\n</a>");
+            }
+            return _this.liveContainer.addClass("visible");
+          } else {
+            return _this.liveContainer.removeClass("visible");
+          }
+        };
+      })(this));
+    };
+
+    return SearchView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.HeaderView = (function(superClass) {
+    extend(HeaderView, superClass);
+
+    function HeaderView() {
+      return HeaderView.__super__.constructor.apply(this, arguments);
+    }
+
+    HeaderView.prototype.events = {
+      "click .nav-toggle-button": "sidebarWasToggled",
+      "click .cart-count": "sidebarWasToggled"
+    };
+
+    HeaderView.prototype.initialize = function() {
+      return this.searchView = new Site.SearchView({
+        el: $(".header-search-form")
+      });
+    };
+
+    HeaderView.prototype.sidebarWasToggled = function(event) {
+      var body, sidebarIsOpen, target;
+      body = $(document.body);
+      target = $(event.target);
+      sidebarIsOpen = !body.hasClass("sidebar-closed");
+      if (target.is(".nav-toggle-button") || target.is(".nav-toggle-button span")) {
+        if (sidebarIsOpen) {
+          if (!body.hasClass("side-cart-closed")) {
+            return body.addClass("side-cart-closed").removeClass("side-nav-closed");
+          } else {
+            return body.addClass("side-nav-closed sidebar-closed");
+          }
+        } else {
+          return body.removeClass("side-nav-closed sidebar-closed");
+        }
+      } else if (target.is(".cart-count") && theme.isMobileWindow) {
+        event.preventDefault();
+        if (sidebarIsOpen) {
+          if (!body.hasClass("side-nav-closed")) {
+            return body.addClass("side-nav-closed").removeClass("side-cart-closed");
+          } else {
+            return body.addClass("side-cart-closed sidebar-closed");
+          }
+        } else {
+          return body.removeClass("side-cart-closed sidebar-closed");
+        }
+      }
+    };
+
+    return HeaderView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.SidebarView = (function(superClass) {
+    extend(SidebarView, superClass);
+
+    function SidebarView() {
+      return SidebarView.__super__.constructor.apply(this, arguments);
+    }
+
+    SidebarView.prototype.initialize = function() {
+      this.header = $(".main-header");
+      this.navigation = this.$(".navigation");
+      this.cartSidebar = this.$(".sidebar.cart");
+      return this.navigationView = new Site.NavigationView({
+        el: this.navigation
+      });
+    };
+
+    SidebarView.prototype.pageResize = function() {
+      var cartFromHeader, currentCount, searchFromHeader;
+      this.navigationView.checkForMobile();
+      this.$el.css("top", this.header.outerHeight() + (theme.adminUI.isExpanded() ? 40 : 0));
+      $(document.body).toggleClass("sidebar-can-transition", theme.isMobileWindow);
+      if (theme.isMobileWindow && !this.hasHeaderContents) {
+        searchFromHeader = $("<li class=\"mobile-search\">\n  " + (this.header.find(".header-search-form")[0].outerHTML) + "\n</li>");
+        currentCount = this.header.find(".drop-cart .item").length;
+        if (!currentCount) {
+          currentCount = 0;
+        }
+        cartFromHeader = $("<div class=\"top-group\">").html($("<span class=\"item-count\" />")).append($("<span class=\"cart-value money\" />"));
+        this.navigation.find("ul").first().prepend(searchFromHeader);
+        this.cartSidebar.append(cartFromHeader);
+        new Site.SearchView({
+          el: searchFromHeader.find(".header-search-form")
+        });
+        new Site.CartSidebarView({
+          el: this.cartSidebar
+        });
+        return this.hasHeaderContents = true;
+      }
+    };
+
+    return SidebarView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.CartSidebarView = (function(superClass) {
+    extend(CartSidebarView, superClass);
+
+    function CartSidebarView() {
+      return CartSidebarView.__super__.constructor.apply(this, arguments);
+    }
+
+    CartSidebarView.prototype.initialize = function() {
+      var count, value;
+      this.headerCart = $(".main-header .shopping-cart-wrap");
+      this.countContainer = this.$(".item-count");
+      this.valueContainer = this.$(".cart-value");
+      count = this.headerCart.find(".drop-cart .item").length;
+      if (!count) {
+        count = 0;
+      }
+      value = this.headerCart.find(".cart-text").text().trim();
+      if (value.indexOf("(") !== -1) {
+        value = value.substring(0, value.indexOf("("));
+      }
+      this.countContainer.text(count + " " + (count === 1 ? Theme.cartCountLabels.singular : Theme.cartCountLabels.plural));
+      this.valueContainer.text(value);
+      if (count !== 0) {
+        return this.$el.append(this.headerCart.find(".cart-tools")[0].outerHTML);
+      }
+    };
+
+    return CartSidebarView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.NavigationView = (function(superClass) {
+    extend(NavigationView, superClass);
+
+    function NavigationView() {
+      return NavigationView.__super__.constructor.apply(this, arguments);
+    }
+
+    NavigationView.prototype.events = {
+      "click a": "navigationItemPressed",
+      "click .toggle-menu": "toggleMenu",
+      "click .navigation-show-more": "showMore",
+      "click .navigation-show-less": "showLess"
+    };
+
+    NavigationView.prototype.initialize = function() {
+      return this.setupMenus();
+    };
+
+    NavigationView.prototype.checkForMobile = function() {
+      if (!theme.isMobileWindow) {
+        return this.$(".is-parent-menu").css("transform", "none").add(".is-next-menu").removeClass("is-parent-menu is-next-menu");
+      }
+    };
+
+    NavigationView.prototype.navigationItemPressed = function(event) {
+      var currentMenu, parentItem, parentMenu, positionTop, target;
+      target = $(event.target);
+      if (target.is(".go-backward")) {
+        target = target.parent();
+      }
+      if (target.is(".go-forward")) {
+        event.preventDefault();
+        parentItem = target.closest("li");
+        parentMenu = parentItem.closest("ul").addClass("is-parent-menu");
+        positionTop = parentItem.position().top;
+        parentItem.find("ul").first().addClass("is-next-menu").css({
+          "top": positionTop,
+          "display": "block"
+        });
+        return parentMenu.data("offset", positionTop).css("transform", "translateY(-" + positionTop + "px)").one("trend", function() {
+          return parentMenu.css("transform", "translate(-100%, -" + positionTop + "px)");
+        });
+      } else if (target.closest("li").is(".back-link")) {
+        currentMenu = target.closest("ul");
+        parentMenu = target.closest(".is-parent-menu");
+        return parentMenu.css("transform", "translate(0, -" + (parentMenu.data("offset")) + "px)").one("trend", function() {
+          parentMenu.css("transform", "translate(0,0").data("offset", "0").removeClass("is-parent-menu");
+          return currentMenu.removeClass("is-next-menu").css({
+            "top": "auto",
+            "display": "none"
+          });
+        });
+      }
+    };
+
+    NavigationView.prototype.setupMenus = function() {
+      var currentLinkParent, currentLinklist, toggle;
+      if (this.$(".navigation-item > .current").length) {
+        currentLinklist = this.$(".navigation-item > .current").parents("ul");
+        currentLinkParent = currentLinklist.siblings(".parent-link");
+        toggle = currentLinkParent.children(".toggle-menu");
+        currentLinklist.removeClass("hidden");
+        currentLinkParent.addClass("menu-open");
+        return toggle.html(toggle.data("close"));
+      }
+    };
+
+    NavigationView.prototype.toggleMenu = function(event) {
+      var target, targetParent;
+      event.preventDefault();
+      target = $(event.currentTarget);
+      targetParent = target.closest(".parent-link");
+      targetParent.toggleClass("menu-open").siblings("ul").toggleClass("hidden");
+      if (targetParent.hasClass("menu-open")) {
+        return target.html(target.data("close"));
+      } else {
+        return target.html(target.data("open"));
+      }
+    };
+
+    NavigationView.prototype.showMore = function(event) {
+      var target;
+      target = $(event.currentTarget);
+      target.siblings(".navigation-item").removeClass("hidden");
+      return target.addClass("hidden");
+    };
+
+    NavigationView.prototype.showLess = function(event) {
+      var target;
+      target = $(event.currentTarget);
+      target.add(target.siblings(".navigation-item:gt(5)")).addClass("hidden");
+      return target.siblings(".navigation-show-more").removeClass("hidden");
+    };
+
+    return NavigationView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.ImageZoomView = (function(superClass) {
+    extend(ImageZoomView, superClass);
+
+    function ImageZoomView() {
+      return ImageZoomView.__super__.constructor.apply(this, arguments);
+    }
+
+    ImageZoomView.prototype.events = {
+      "prepare-zoom": "prepareZoom",
+      "click": "toggleZoom",
+      "mouseout .product-zoom": "toggleZoom",
+      "mousemove .product-zoom": "zoomImage"
+    };
+
+    ImageZoomView.prototype.initialize = function() {
+      this.zoomArea = this.$(".product-zoom");
+      return this.$el.imagesLoaded((function(_this) {
+        return function() {
+          return _this.prepareZoom();
+        };
+      })(this));
+    };
+
+    ImageZoomView.prototype.prepareZoom = function() {
+      var newImage, photoAreaHeight, photoAreaWidth;
+      photoAreaWidth = this.$el.width();
+      photoAreaHeight = this.$el.height();
+      newImage = new Image();
+      $(newImage).on("load", (function(_this) {
+        return function() {
+          var ratio, ratios;
+          _this.zoomImageWidth = newImage.width;
+          _this.zoomImageHeight = newImage.height;
+          ratios = new Array();
+          ratios[0] = _this.zoomImageWidth / photoAreaWidth;
+          ratios[1] = _this.zoomImageHeight / photoAreaHeight;
+          ratio = Math.max.apply(Math, ratios);
+          if (ratio < 1.4) {
+            _this.$el.removeClass("zoom-enabled");
+          } else {
+            _this.$el.addClass("zoom-enabled");
+            return _this.zoomArea.css({
+              backgroundImage: "url(" + newImage.src + ")"
+            });
+          }
+        };
+      })(this));
+      return newImage.src = this.$("img").attr("src");
+    };
+
+    ImageZoomView.prototype.toggleZoom = function(event) {
+      if (this.$el.hasClass("zoom-enabled")) {
+        if (event.type === "mouseout") {
+          this.zoomArea.removeClass("active");
+          return;
+        }
+        if (this.zoomArea.hasClass("active")) {
+          this.zoomArea.removeClass("active");
+        } else {
+          this.zoomArea.addClass("active");
+        }
+        return this.zoomImage(event);
+      }
+    };
+
+    ImageZoomView.prototype.zoomImage = function(event) {
+      var bigImageOffset, bigImageX, bigImageY, mousePositionX, mousePositionY, newBackgroundPosition, ratioX, ratioY, zoomHeight, zoomWidth;
+      zoomWidth = this.zoomArea.width();
+      zoomHeight = this.zoomArea.height();
+      bigImageOffset = this.$el.offset();
+      bigImageX = Math.round(bigImageOffset.left);
+      bigImageY = Math.round(bigImageOffset.top);
+      mousePositionX = event.pageX - bigImageX;
+      mousePositionY = event.pageY - bigImageY;
+      if (mousePositionX < zoomWidth && mousePositionY < zoomHeight && mousePositionX > 0 && mousePositionY > 0) {
+        if (this.zoomArea.hasClass("active")) {
+          ratioX = Math.round(mousePositionX / zoomWidth * this.zoomImageWidth - zoomWidth / 2) * -1;
+          ratioY = Math.round(mousePositionY / zoomHeight * this.zoomImageHeight - zoomHeight / 2) * -1;
+          if (ratioX > 0) {
+            ratioX = 0;
+          }
+          if (ratioY > 0) {
+            ratioY = 0;
+          }
+          if (ratioX < -(this.zoomImageWidth - zoomWidth)) {
+            ratioX = -(this.zoomImageWidth - zoomWidth);
+          }
+          if (ratioY < -(this.zoomImageHeight - zoomHeight)) {
+            ratioY = -(this.zoomImageHeight - zoomHeight);
+          }
+          newBackgroundPosition = ratioX + "px " + ratioY + "px";
+          return this.zoomArea.css({
+            backgroundPosition: newBackgroundPosition
+          });
+        }
+      }
+    };
+
+    return ImageZoomView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.AccountView = (function(superClass) {
+    extend(AccountView, superClass);
+
+    function AccountView() {
+      return AccountView.__super__.constructor.apply(this, arguments);
+    }
+
+    AccountView.prototype.events = {
+      "click .delete-address": "deleteAddress",
+      "click .edit-address, .cancel-edit": "toggleEditAddress",
+      "click .toggle-new-address": "toggleNewAddress",
+      "click .toggle-forgetfulness span": "recoverPassword"
+    };
+
+    AccountView.prototype.initialize = function() {
+      if ($(document.body).hasClass("template-customers-addresses")) {
+        this.prepareAddresses();
+      }
+      if ($(document.body).hasClass("template-customers-login")) {
+        this.checkForReset();
+      }
+      if (window.location.hash === "#recover") {
+        this.recoverPassword();
+      }
+      if ($(".customer-new-address .errors").length) {
+        return this.toggleNewAddress();
+      }
+    };
+
+    AccountView.prototype.recoverPassword = function() {
+      return this.$(".customer-login, .recover-password").toggleClass("hidden");
+    };
+
+    AccountView.prototype.checkForReset = function() {
+      if ($(".reset-check").data("successful-reset") === true) {
+        return $(".successful-reset").show();
+      }
+    };
+
+    AccountView.prototype.prepareAddresses = function() {
+      var address, addressID, addresses, i, len;
+      new Shopify.CountryProvinceSelector("address-country", "address-province", {
+        hideElement: "address-province-container"
+      });
+      addresses = this.$(".customer-address");
+      if (addresses.length) {
+        for (i = 0, len = addresses.length; i < len; i++) {
+          address = addresses[i];
+          addressID = $(address).data("address-id");
+          new Shopify.CountryProvinceSelector("address-country-" + addressID, "address-province-" + addressID, {
+            hideElement: "address-province-container-" + addressID
+          });
+        }
+      }
+      return setTimeout((function(_this) {
+        return function() {
+          return _this.$(".template-customers-addresses .main-content select").trigger("update-select-text");
+        };
+      })(this), 500);
+    };
+
+    AccountView.prototype.deleteAddress = function(event) {
+      var addressID;
+      addressID = $(event.target).parents("[data-address-id]").data("address-id");
+      return Shopify.CustomerAddress.destroy(addressID);
+    };
+
+    AccountView.prototype.toggleEditAddress = function(event) {
+      var addressID, form;
+      addressID = $(event.target).parents("[data-address-id]").data("address-id");
+      form = $(".customer-address-edit-form[data-address-id='" + addressID + "']");
+      return form.add(form.siblings(".customer-address")).toggleClass("hidden");
+    };
+
+    AccountView.prototype.toggleNewAddress = function() {
+      return this.$(".add-new-address-container, .customer-new-address, .customer-addresses").toggleClass("hidden");
+    };
+
+    return AccountView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.BlogView = (function(superClass) {
+    extend(BlogView, superClass);
+
+    function BlogView() {
+      return BlogView.__super__.constructor.apply(this, arguments);
+    }
+
+    BlogView.prototype.events = {
+      "click .blog-tags-filter-toggle": "toggleTagFilter"
+    };
+
+    BlogView.prototype.toggleTagFilter = function() {
+      return this.$(".blog-tags").toggleClass("active");
+    };
+
+    return BlogView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.CartView = (function(superClass) {
+    extend(CartView, superClass);
+
+    function CartView() {
+      return CartView.__super__.constructor.apply(this, arguments);
+    }
+
+    CartView.prototype.events = {
+      "click .get-rates": "calculateShipping",
+      "change .cart-instructions textarea": "saveSpecialInstructions"
+    };
+
+    CartView.prototype.initialize = function() {
+      if (Theme.shippingCalculator) {
+        this.shippingCalculator();
+      }
+      if (Theme.shippingCalculator && Theme.customerLoggedIn && Theme.customerCountry.length) {
+        this.calculateShipping();
+      }
+      return Shopify.onError = (function(_this) {
+        return function(XMLHttpRequest) {
+          return _this.handleErrors(XMLHttpRequest);
+        };
+      })(this);
+    };
+
+    CartView.prototype.saveSpecialInstructions = function() {
+      var newNote;
+      newNote = $(".cart-instructions textarea").val();
+      return Shopify.updateCartNote(newNote, function(cart) {});
+    };
+
+    CartView.prototype.shippingCalculator = function() {
+      Shopify.Cart.ShippingCalculator.show({
+        submitButton: Theme.shippingButton,
+        submitButtonDisabled: Theme.shippingDisabled,
+        customerIsLoggedIn: Theme.customerLoggedIn,
+        moneyFormat: Theme.moneyFormat
+      });
+      return setTimeout((function(_this) {
+        return function() {
+          return _this.$(".cart-shipping-calculator select").trigger("update-select-text");
+        };
+      })(this), 500);
+    };
+
+    CartView.prototype.calculateShipping = function() {
+      var shippingAddress;
+      this.$(".get-rates").val(Theme.shippingDisabled);
+      shippingAddress = {};
+      shippingAddress.zip = this.$(".address-zip").val() || "";
+      shippingAddress.country = this.$(".address-country").val() || "";
+      shippingAddress.province = this.$(".address-province").val() || "";
+      return Shopify.getCartShippingRatesForDestination(shippingAddress, function() {
+        var address, firstRate, i, len, price, rate, rateValues, ratesFeedback, response, shippingCalculatorResponse;
+        address = shippingAddress.zip + ", " + shippingAddress.province + ", " + shippingAddress.country;
+        if (!shippingAddress.province.length) {
+          address = shippingAddress.zip + ", " + shippingAddress.country;
+        }
+        if (!shippingAddress.zip.length) {
+          address = shippingAddress.province + ", " + shippingAddress.country;
+        }
+        if (!(shippingAddress.province.length && shippingAddress.zip.length)) {
+          address = shippingAddress.country;
+        }
+        shippingCalculatorResponse = this.$(".cart-shipping-calculator-response");
+        shippingCalculatorResponse.empty().append("<p class='shipping-calculator-response message'/><ul class='shipping-rates'/>");
+        ratesFeedback = $(".shipping-calculator-response");
+        if (rates.length > 1) {
+          firstRate = Shopify.Cart.ShippingCalculator.formatRate(rates[0].price);
+          Theme.shippingCalcMultiRates = Theme.shippingCalcMultiRates.replace("{% raw %}{{ address }}{% endraw %}", address).replace("{% raw %}{{ number_of_rates }}{% endraw %}", rates.length).replace("{% raw %}{{ rate }}{% endraw %}", "<span class='money'>" + firstRate + "</span>");
+          ratesFeedback.html(Theme.shippingCalcMultiRates);
+        } else if (rates.length === 1) {
+          response = Theme.shippingCalcOneRate.replace("{% raw %}{{ address }}{% endraw %}", address);
+          ratesFeedback.html(response);
+        } else {
+          ratesFeedback.html(Theme.shippingCalcNoRates);
+        }
+        for (i = 0, len = rates.length; i < len; i++) {
+          rate = rates[i];
+          price = Shopify.Cart.ShippingCalculator.formatRate(rate.price);
+          rateValues = Theme.shippingCalcRateValues.replace("{% raw %}{{ rate_title }}{% endraw %}", rate.name).replace("{% raw %}{{ rate }}{% endraw %}", "<span class='money'>" + price + "</span>");
+          this.$(".shipping-rates").append("<li>" + rateValues + "</li>");
+        }
+        this.$(".get-rates").val(Theme.shippingButton);
+        return $(".address-province").trigger("update-select-text");
+      });
+    };
+
+    CartView.prototype.handleErrors = function(errors) {
+      var errorMessage;
+      errorMessage = $.parseJSON(errors.responseText);
+      errorMessage = Theme.shippingCalcErrorMessage.replace("{% raw %}{{ error_message }}{% endraw %}", errorMessage.zip);
+      this.$(".cart-shipping-calculator-response").html("<p>" + errorMessage + "</p>");
+      return this.$(".get-rates").val(Theme.shippingButton);
+    };
+
+    return CartView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.CollectionView = (function(superClass) {
+    extend(CollectionView, superClass);
+
+    function CollectionView() {
+      return CollectionView.__super__.constructor.apply(this, arguments);
+    }
+
+    CollectionView.prototype.events = {
+      "change .collection-sorting select": "sortProducts",
+      "change .collection-tag-filter input": "filterByTag"
+    };
+
+    CollectionView.prototype.initialize = function() {
+      var collectionList, filterChecksSetup, sidebar;
+      sidebar = $(".main-sidebar");
+      collectionList = this.$(".collection-list");
+      filterChecksSetup = false;
+      $(window).on("resize", (function(_this) {
+        return function() {
+          var fullDesktop;
+          fullDesktop = document.documentElement.offsetWidth >= 940;
+          if (fullDesktop) {
+            _this.filterPanel = collectionList.find(".collection-viewing-parameters");
+            _this.filterPanel.prependTo(sidebar);
+          } else {
+            _this.filterPanel = sidebar.find(".collection-viewing-parameters");
+            if (!_this.filterPanel.length) {
+              _this.filterPanel = collectionList.find(".collection-viewing-parameters");
+            }
+            _this.filterPanel.prependTo(collectionList);
+          }
+          {% if settings.collection-filtering or settings.collection-sorting %};
+          if (!filterChecksSetup) {
+            _this.setupFilterChecks();
+            filterChecksSetup = true;
+          }
+          return {% endif %};
+        };
+      })(this));
+      return $(document.body).on("click", ".collection-viewing-parameters h3", (function(_this) {
+        return function() {
+          return _this.toggleFilterPanel();
+        };
+      })(this));
+    };
+
+    {% if settings.collection-filtering or settings.collection-sorting %};
+
+    CollectionView.prototype.setupFilterChecks = function() {
+      var count, results;
+      this.filterCheckboxes = this.filterPanel.find(".collection-tag-filter input");
+      this.checkedFilterBoxes = this.filterCheckboxes.filter(":checked");
+      this.checkedFilterTags = [];
+      count = 0;
+      results = [];
+      while (count < this.checkedFilterBoxes.length) {
+        this.checkedFilterTags.push($(this.checkedFilterBoxes[count]).data("handle"));
+        results.push(count = count + 1);
+      }
+      return results;
+    };
+
+    CollectionView.prototype.toggleFilterPanel = function() {
+      return this.filterPanel.toggleClass("active");
+    };
+
+    CollectionView.prototype.sortProducts = function(event) {
+      var Sorting, currentSearch, i, index, len, part, search, searchParts;
+      Sorting = {};
+      Sorting.sort_by = this.$(".collection-sorting select").val();
+      if ($(event.target).closest(".collection-sorting").hasClass("vendor-collection")) {
+        currentSearch = location.search;
+        searchParts = currentSearch.split("&");
+        for (index = i = 0, len = searchParts.length; i < len; index = ++i) {
+          part = searchParts[index];
+          if (part.indexOf("sort_by") !== -1) {
+            searchParts.splice(index, 1);
+          }
+        }
+        search = searchParts.join("&");
+        return location.search = search + "&" + (jQuery.param(Sorting));
+      } else {
+        return location.search = jQuery.param(Sorting);
+      }
+    };
+
+    CollectionView.prototype.filterByTag = function(event) {
+      var tag, target, url;
+      target = $(event.target);
+      url = this.filterPanel.data("url");
+      tag = target.data("handle");
+      if (target.is(":checked")) {
+        this.checkedFilterTags.push(tag);
+      } else {
+        this.checkedFilterTags.splice(this.checkedFilterTags.indexOf(tag));
+      }
+      return window.location.href = "/collections/" + (this.filterPanel.data("url")) + "/" + (this.checkedFilterTags.join("+"));
+    };
+
+    {% endif %};
+
+    return CollectionView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.HomeView = (function(superClass) {
+    extend(HomeView, superClass);
+
+    function HomeView() {
+      return HomeView.__super__.constructor.apply(this, arguments);
+    }
+
+    HomeView.prototype.initialize = function() {
+      if (Theme.slideshow) {
+        new Site.SlideshowView({
+          el: this.$(".home-slideshow")
+        });
+      }
+      if (Theme.instagram) {
+        new Site.InstagramView({
+          el: this.$(".instagram-widget")
+        });
+      }
+      if (Theme.twitter) {
+        return new Site.TwitterView({
+          el: this.$(".twitter-widget")
+        });
+      }
+    };
+
+    return HomeView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.PasswordView = (function(superClass) {
+    extend(PasswordView, superClass);
+
+    function PasswordView() {
+      return PasswordView.__super__.constructor.apply(this, arguments);
+    }
+
+    PasswordView.prototype.events = {
+      "click .password-entry": "togglePasswordForm"
+    };
+
+    PasswordView.prototype.initialize = function() {
+      this.toggle = this.$(".password-entry");
+      if (this.$("[data-password-form-inner]").hasClass("has-errors")) {
+        return this.togglePasswordForm();
+      }
+    };
+
+    PasswordView.prototype.togglePasswordForm = function() {
+      this.$(".password-subscribe-wrapper").add(".password-form-wrapper").toggleClass("visible");
+      if (this.$(".password-subscribe-wrapper").hasClass("visible")) {
+        return this.toggle.text(this.toggle.data("enter-password"));
+      } else {
+        return this.toggle.text(this.toggle.data("cancel"));
+      }
+    };
+
+    return PasswordView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.ProductView = (function(superClass) {
+    extend(ProductView, superClass);
+
+    function ProductView() {
+      this.selectCallback = bind(this.selectCallback, this);
+      return ProductView.__super__.constructor.apply(this, arguments);
+    }
+
+    ProductView.prototype.events = {
+      "change .single-option-selector": "associateImageVariant",
+      "mouseenter .pager": "adjustSlideshowThumb",
+      "click .slideshow-slide.zoom-enabled": "toggleZoom",
+      "mousemove .product-slideshow": "panZoom",
+      "click .pager": "changeSlide",
+      "click .previous": "previousSlide",
+      "click .next": "nextSlide"
+    };
+
+    ProductView.prototype.initialize = function() {
+      this.productId = this.$(".product-wrap").data("product-id");
+      this.product = Theme.product;
+      this.variants = this.product.variants;
+      this.images = this.product.images;
+      this.minimumPriceArea = this.$(".price-minimum");
+      this.cacheImages();
+      if (this.$(".product-variants").length) {
+        this.setupSelectors();
+      }
+      return this.setupSlideshow();
+    };
+
+    ProductView.prototype.cacheImages = function() {
+      return Shopify.Image.preload(this.images, "1024x1024");
+    };
+
+    ProductView.prototype.setupSelectors = function() {
+      var i, len, optionSelectors, ref, variant;
+      optionSelectors = new Shopify.OptionSelectors("product-variants-" + this.productId, {
+        product: this.product,
+        onVariantSelected: this.selectCallback,
+        enableHistoryState: true
+      });
+      optionSelectors.selectVariant(Theme.firstVariant);
+      ref = this.variants;
+      for (i = 0, len = ref.length; i < len; i++) {
+        variant = ref[i];
+        if (variant.featured_image) {
+          this.hasVariantImages = true;
+          return;
+        }
+      }
+    };
+
+    ProductView.prototype.selectCallback = function(variant, selector) {
+      var addToCartButton, index;
+      addToCartButton = this.$(".add-to-cart input");
+      if (variant) {
+        if (variant.available) {
+          addToCartButton.val(Theme.addToCartText).removeClass("disabled").prop("disabled", false);
+        } else {
+          addToCartButton.val(Theme.soldOutText).addClass("disabled").prop("disabled", true);
+        }
+        this.minimumPriceArea.html(Shopify.formatMoney(variant.price, Theme.moneyFormat));
+        this.$(".price-compare").remove();
+        if (variant.compare_at_price > variant.price) {
+          this.minimumPriceArea.after("<span class='price-compare money' />");
+          this.$(".price-compare").html(Shopify.formatMoney(variant.compare_at_price, Theme.moneyFormat));
+        }
+        if (this.hasVariantImages) {
+          if (variant.featured_image) {
+            index = variant.featured_image.position - 1;
+            return this.$(".product-slideshow").flickity("select", index);
+          }
+        }
+      } else {
+        return addToCartButton.val(Theme.unavailableText).addClass("disabled").prop("disabled", true);
+      }
+    };
+
+    ProductView.prototype.toggleZoom = function(event) {
+      var target;
+      target = $(event.target);
+      if (target.is(".slide-navigation, .pager, [data-high-res]") || target.closest(".pager").length) {
+        return;
+      }
+      this.currentSlide.add(document.body).toggleClass("zoom-active");
+      this.zoomActive = !this.zoomActive;
+      if (!this.zoomActive) {
+        return this.currentImage.css({
+          "transform": "translate(0,0)",
+          "top": 0,
+          "left": 0
+        });
+      }
+    };
+
+    ProductView.prototype.disableZoom = function() {
+      this.currentSlide.add(document.body).removeClass("zoom-active");
+      this.currentImage.css({
+        "transform": "translate(0,0)",
+        "top": 0,
+        "left": 0
+      });
+      return this.zoomActive = false;
+    };
+
+    ProductView.prototype.panZoom = function(event) {
+      var position, ratioX, ratioY;
+      position = {
+        x: event.pageX - this.slideshowSpec.left,
+        y: event.pageY - this.slideshowSpec.top
+      };
+      if (position.x > this.slideshowSpec.containerWidth || position.y > this.slideshowSpec.containerHeight || position.y < 0 || position.X < 0 || !this.zoomActive) {
+        return;
+      }
+      ratioX = Math.round(position.x / this.slideshowSpec.containerWidth * this.slideshowSpec.imageWidth - this.slideshowSpec.containerWidth / 2) * -1;
+      ratioY = Math.round(position.y / this.slideshowSpec.containerHeight * this.slideshowSpec.imageHeight - this.slideshowSpec.containerWidth / 2) * -1;
+      if (ratioX > 0) {
+        ratioX = 0;
+      }
+      if (ratioY > 0) {
+        ratioY = 0;
+      }
+      if (ratioX < -(this.slideshowSpec.imageWidth - this.slideshowSpec.containerWidth)) {
+        ratioX = -(this.slideshowSpec.imageWidth - this.slideshowSpec.containerWidth);
+      }
+      if (ratioY < -(this.slideshowSpec.imageHeight - this.slideshowSpec.containerHeight)) {
+        ratioY = -(this.slideshowSpec.imageHeight - this.slideshowSpec.containerHeight);
+      }
+      if (theme.ltIE9) {
+        return this.currentSlide.css({
+          "position": "relative",
+          "top": ratioX + "px",
+          "left": ratioY + "px"
+        });
+      } else {
+        return this.currentImage.css({
+          "transform": "translate(" + ratioX + "px," + ratioY + "px)"
+        });
+      }
+    };
+
+    ProductView.prototype.setupSlideshow = function() {
+      var initialIndex;
+      this.slideshow = this.$(".product-slideshow");
+      this.slideshowPagers = this.slideshow.find(".pager");
+      this.zoomActive = false;
+      initialIndex = 0;
+      if (this.$(".slideshow-slide.initial-slide").length) {
+        initialIndex = this.$(".slideshow-slide.initial-slide").index();
+      }
+      this.slideshow.flickity({
+        cellSelector: ".slideshow-slide",
+        accessibility: true,
+        imagesLoaded: true,
+        wrapAround: true,
+        autoPlay: false,
+        draggable: false,
+        percentPosition: true,
+        pageDots: false,
+        prevNextButtons: false,
+        initialIndex: initialIndex
+      }).on("cellSelect", (function(_this) {
+        return function() {
+          return _this.slideSettled();
+        };
+      })(this));
+      this.flickityData = this.slideshow.data("flickity");
+      this.slideshowSlides = this.slideshow.find(".flickity-slider").children();
+      this.slideSettled();
+      return $(window).on("resize", (function(_this) {
+        return function() {
+          return _this.setSlideshowSpec();
+        };
+      })(this));
+    };
+
+    ProductView.prototype.slideSettled = function() {
+      this.currentSlide = $(this.slideshowSlides[this.flickityData.selectedIndex]);
+      this.currentImage = this.currentSlide.find("img");
+      this.slideshow.height(this.currentSlide.height());
+      this.setSlideshowSpec();
+      if (this.slideshowSpec.imageWidth < 700) {
+        return this.currentSlide.removeClass("zoom-enabled");
+      }
+    };
+
+    ProductView.prototype.setSlideshowSpec = function() {
+      var containerOffset, currentImage;
+      containerOffset = this.slideshow.offset();
+      currentImage = new Image();
+      currentImage.src = this.currentImage.attr("src");
+      return this.slideshowSpec = {
+        top: containerOffset.top,
+        left: containerOffset.left,
+        containerWidth: this.slideshow.width(),
+        containerHeight: this.slideshow.height(),
+        imageWidth: currentImage.width,
+        imageHeight: currentImage.height
+      };
+    };
+
+    ProductView.prototype.nextSlide = function() {
+      this.disableZoom();
+      return this.slideshow.flickity("next", true);
+    };
+
+    ProductView.prototype.previousSlide = function() {
+      this.disableZoom();
+      return this.slideshow.flickity("previous", true);
+    };
+
+    ProductView.prototype.changeSlide = function(event) {
+      var target;
+      target = $(event.target);
+      this.disableZoom();
+      return this.slideshow.flickity("select", target.index());
+    };
+
+    ProductView.prototype.adjustSlideshowThumb = function(event) {
+      var target, thumbnail;
+      target = $(event.target);
+      thumbnail = target.children("img");
+      return thumbnail.css("margin-left", -(thumbnail.width() / 2));
+    };
+
+    return ProductView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.SlideshowView = (function(superClass) {
+    extend(SlideshowView, superClass);
+
+    function SlideshowView() {
+      return SlideshowView.__super__.constructor.apply(this, arguments);
+    }
+
+    SlideshowView.prototype.events = {
+      "click .next-slide": "goNextSlide",
+      "click .previous-slide": "goPreviousSlide"
+    };
+
+    SlideshowView.prototype.initialize = function() {
+      var autoPlay;
+      this.controls = this.$(".slideshow-navigation");
+      autoPlay = false;
+      if (this.$el.data("autoplay") === true && this.$el.data("delay")) {
+        autoPlay = this.$el.data("delay");
+      }
+      this.slideshow = this.$(".slideshow-slides").flickity({
+        accessibility: true,
+        imagesLoaded: true,
+        wrapAround: true,
+        autoPlay: autoPlay,
+        draggable: true,
+        percentPosition: true,
+        pageDots: false,
+        prevNextButtons: false
+      }).on("cellSelect", (function(_this) {
+        return function() {
+          return _this.adjustSlide();
+        };
+      })(this));
+      this.flickityData = this.slideshow.data("flickity");
+      this.slideshowSlides = this.slideshow.find(".flickity-slider").children();
+      this.adjustSlide();
+      return $(window).on("resize", (function(_this) {
+        return function() {
+          return _this.adjustSlide();
+        };
+      })(this));
+    };
+
+    SlideshowView.prototype.adjustSlide = function() {
+      var slide, slideContent, textColor;
+      slide = $(this.slideshowSlides[this.flickityData.selectedIndex]);
+      slideContent = slide.children(".slide-content");
+      textColor = /text-dark|text-light/.exec(slide.attr("class"))[0];
+      slideContent.css({
+        marginTop: -slideContent.outerHeight() / 2,
+        marginLeft: -slideContent.outerWidth() / 2
+      });
+      return this.controls.attr("data-color", textColor);
+    };
+
+    SlideshowView.prototype.goNextSlide = function() {
+      return this.slideshow.flickity("next", true);
+    };
+
+    SlideshowView.prototype.goPreviousSlide = function() {
+      return this.slideshow.flickity("previous", true);
+    };
+
+    return SlideshowView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.InstagramView = (function(superClass) {
+    extend(InstagramView, superClass);
+
+    function InstagramView() {
+      return InstagramView.__super__.constructor.apply(this, arguments);
+    }
+
+    InstagramView.prototype.initialize = function() {
+      var url;
+      this.photoContainer = this.$(".instagram-photos");
+      this.layoutType = this.$el.hasClass("layout-two") ? 2 : 1;
+      this.layoutCount = this.layoutType === 1 ? 5 : 8;
+      if (Theme.instagramShowTag && Theme.instagramTag.length) {
+        url = "https://api.instagram.com/v1/tags/" + Theme.instagramTag + "/media/recent?access_token=" + Theme.instagramAccessToken + "&count=" + this.layoutCount + "&callback=";
+      } else {
+        url = "https://api.instagram.com/v1/users/self/media/recent?access_token=" + Theme.instagramAccessToken + "&count=" + this.layoutCount + "&callback=";
+      }
+      return $.ajax({
+        type: "GET",
+        dataType: "jsonp",
+        url: url,
+        success: (function(_this) {
+          return function(response) {
+            var i, j, len, photo, ref, results;
+            if (response.meta.code === 200) {
+              ref = response.data;
+              results = [];
+              for (i = j = 0, len = ref.length; j < len; i = ++j) {
+                photo = ref[i];
+                photo = $("<a class='instagram-photo' target='_blank' href='" + photo.link + "'><img src='" + photo.images.low_resolution.url + "'/></a>");
+                if (i % 2 && theme.ltIE9 && _this.layoutType === 2) {
+                  photo.addClass("odd");
+                }
+                results.push(_this.photoContainer.append(photo));
+              }
+              return results;
+            } else {
+              _this.$el.remove();
+              return console.log("Instagram error: " + response.meta.error_message);
+            }
+          };
+        })(this),
+        error: (function(_this) {
+          return function(response) {
+            _this.$el.remove();
+            return console.log("Instagram error: " + response.meta.error_message);
+          };
+        })(this)
+      });
+    };
+
+    return InstagramView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.TwitterView = (function(superClass) {
+    extend(TwitterView, superClass);
+
+    function TwitterView() {
+      return TwitterView.__super__.constructor.apply(this, arguments);
+    }
+
+    TwitterView.prototype.initialize = function() {
+      return twitterFetcher.fetch({
+        "profile": {
+          "screenName": Theme.twitterId
+        },
+        "maxTweets": 1,
+        "enableLinks": true,
+        "showUser": true,
+        "showTime": true,
+        "showRetweet": Theme.twitterShowRetweets,
+        "customCallback": this.renderTweets,
+        "showInteraction": true
+      });
+    };
+
+    TwitterView.prototype.renderTweets = function(tweets) {
+      var i, len, tweet;
+      if (tweets.length) {
+        for (i = 0, len = tweets.length; i < len; i++) {
+          tweet = tweets[i];
+          return this.$(".twitter-tweet").append($(tweet));
+        }
+      }
+      $(".twitter-widget").remove();
+      return console.error("No tweets to display. Most probable cause is an incorrectly entered username.");
+    };
+
+    return TwitterView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.RTEView = (function(superClass) {
+    extend(RTEView, superClass);
+
+    function RTEView() {
+      return RTEView.__super__.constructor.apply(this, arguments);
+    }
+
+    RTEView.prototype.events = {
+      "click .tabs li": "switchTabs"
+    };
+
+    RTEView.prototype.initialize = function() {
+      this.setupTabs();
+      this.setupTables();
+      return this.$el.fitVids();
+    };
+
+    RTEView.prototype.setupTabs = function() {
+      var tabsContainer;
+      tabsContainer = this.$el.find(".tabs");
+      this.tabs = tabsContainer.find("ul li");
+      this.panels = tabsContainer.children("div");
+      return this.currentTabs = this.tabs.filter(":first").add(this.panels.filter(":first")).addClass("active");
+    };
+
+    RTEView.prototype.switchTabs = function(event) {
+      var index;
+      index = $(event.currentTarget).index();
+      this.currentTabs.removeClass("active");
+      return this.currentTabs = this.tabs.eq(index).add(this.panels.eq(index)).addClass("active");
+    };
+
+    RTEView.prototype.setupTables = function() {
+      var i, len, ref, results, table;
+      ref = this.$el.find("table");
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        table = ref[i];
+        results.push($(table).wrap($("<div class='table-wrapper' />")));
+      }
+      return results;
+    };
+
+    return RTEView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.SelectView = (function(superClass) {
+    extend(SelectView, superClass);
+
+    function SelectView() {
+      return SelectView.__super__.constructor.apply(this, arguments);
+    }
+
+    SelectView.prototype.events = {
+      "change": "updateSelectText",
+      "update-select-text": "updateSelectText"
+    };
+
+    SelectView.prototype.initialize = function() {
+      if (!(this.$el.parent(".select-wrapper").length || this.$el.hasClass("product-variants"))) {
+        this.$el.wrap("<div class='select-wrapper' />").parent().prepend("<span class='selected-text'></span>");
+      }
+      return this.updateSelectText();
+    };
+
+    SelectView.prototype.updateSelectText = function() {
+      var newOption;
+      newOption = this.$el.find("option:selected").text();
+      return this.$el.siblings(".selected-text").text(newOption);
+    };
+
+    return SelectView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  Site.QuickShopView = (function(superClass) {
+    extend(QuickShopView, superClass);
+
+    function QuickShopView() {
+      this.selectCallback = bind(this.selectCallback, this);
+      return QuickShopView.__super__.constructor.apply(this, arguments);
+    }
+
+    QuickShopView.prototype.events = {
+      "click .product-list-item-thumbnail a": "openQuickShop",
+      "click .close-modal": "closeQuickShop",
+      "click .slideshow-thumbnails .thumbnail": "switchSlide"
+    };
+
+    {% if settings.product-quick-shop %};
+
+    QuickShopView.prototype.initialize = function() {
+      this.open = false;
+      this.productID = this.$el.find(".quick-shop-modal").data("product-id");
+      this.product = Theme.products[this.productID];
+      this.modal = this.$(".quick-shop-modal-wrapper");
+      this.addToCartButton = this.$(".add-to-cart input");
+      this.minimumPriceArea = this.$(".price-minimum");
+      this.setupSlideshow();
+      this.setupSelectors();
+      return $(document.body).on("keyup", (function(_this) {
+        return function(event) {
+          if (event.keyCode === 27 && _this.open) {
+            return _this.closeQuickShop();
+          }
+        };
+      })(this));
+    };
+
+    QuickShopView.prototype.setupSelectors = function() {
+      var i, len, optionSelectors, ref, variant;
+      if (this.product.variants[0].title !== 'Default Title') {
+        optionSelectors = new Shopify.OptionSelectors("product-variants-" + this.productID, {
+          product: this.product,
+          onVariantSelected: this.selectCallback
+        });
+        optionSelectors.selectVariant(this.$el.find(".quick-shop-modal").data("variant-id"));
+        ref = this.product.variants;
+        for (i = 0, len = ref.length; i < len; i++) {
+          variant = ref[i];
+          if (variant.featured_image) {
+            this.hasVariantImages = true;
+            return;
+          }
+        }
+      }
+    };
+
+    QuickShopView.prototype.selectCallback = function(variant, selector) {
+      var index;
+      if (variant) {
+        if (variant.available) {
+          this.addToCartButton.val(Theme.addToCartText).removeClass("disabled").prop("disabled", false);
+        } else {
+          this.addToCartButton.val(Theme.soldOutText).addClass("disabled").prop("disabled", true);
+        }
+        this.minimumPriceArea.html(Shopify.formatMoney(variant.price, Theme.moneyFormat));
+        this.$(".price-compare").remove();
+        if (variant.compare_at_price > variant.price) {
+          this.minimumPriceArea.after("<span class='price-compare money' />");
+          this.$(".price-compare").html(Shopify.formatMoney(variant.compare_at_price, Theme.moneyFormat));
+        }
+        if (this.hasVariantImages) {
+          if (variant.featured_image) {
+            index = variant.featured_image.position - 1;
+            return this.$(".large-images").flickity("select", index);
+          }
+        }
+      } else {
+        return this.addToCartButton.val(Theme.unavailableText).addClass("disabled").prop("disabled", true);
+      }
+    };
+
+    QuickShopView.prototype.openQuickShop = function(event) {
+      var i, len, ref, results, select;
+      if (document.documentElement.offsetWidth <= 787) {
+        return;
+      }
+      event.preventDefault();
+      this.modal.add(document.body).addClass("quick-shop-open");
+      this.open = true;
+      this.checkModalHeight();
+      ref = $("select", this.modal);
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        select = ref[i];
+        results.push(this.selectView = new Site.SelectView({
+          el: select
+        }));
+      }
+      return results;
+    };
+
+    QuickShopView.prototype.closeQuickShop = function() {
+      this.modal.add(document.body).removeClass("quick-shop-open");
+      return this.open = false;
+    };
+
+    QuickShopView.prototype.setupSlideshow = function() {
+      var initialImageIndex;
+      this.slideshow = this.$(".large-images");
+      initialImageIndex = 0;
+      if (this.slideshow.find(".initial-image").length) {
+        initialImageIndex = this.slideshow.find(".initial-image").index();
+      }
+      this.slideshow.flickity({
+        imagesLoaded: true,
+        wrapAround: false,
+        draggable: false,
+        percentPosition: true,
+        pageDots: false,
+        prevNextButtons: false,
+        initialIndex: initialImageIndex
+      }).on("cellSelect", (function(_this) {
+        return function() {
+          return _this.slideSettled();
+        };
+      })(this)).on("settle", (function(_this) {
+        return function() {
+          return _this.checkModalHeight();
+        };
+      })(this));
+      this.flickityData = this.slideshow.data("flickity");
+      this.slideshowSlides = this.slideshow.find(".flickity-slider").children();
+      this.slideshowThumbs = this.$(".slideshow-thumbnails .thumbnail");
+      return this.slideSettled();
+    };
+
+    QuickShopView.prototype.slideSettled = function() {
+      this.currentSlide = $(this.slideshowSlides[this.flickityData.selectedIndex]);
+      return this.slideshow.height(this.currentSlide.height());
+    };
+
+    QuickShopView.prototype.switchSlide = function(event) {
+      var target;
+      this.slideshowThumbs.removeClass("selected");
+      target = $(event.target).addClass("selected");
+      return this.slideshow.flickity("select", target.index());
+    };
+
+    QuickShopView.prototype.checkModalHeight = function() {
+      var modalChild;
+      modalChild = this.modal.children(".quick-shop-modal");
+      modalChild.css("overflow-y", "scroll");
+      if (modalChild.outerHeight() < $(window).height()) {
+        return modalChild.css("overflow-y", "hidden");
+      }
+    };
+
+    {% endif %};
+
+    return QuickShopView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  window.GiftCardView = (function(superClass) {
+    extend(GiftCardView, superClass);
+
+    function GiftCardView() {
+      return GiftCardView.__super__.constructor.apply(this, arguments);
+    }
+
+    GiftCardView.prototype.initialize = function() {
+      return this.addQrCode();
+    };
+
+    GiftCardView.prototype.addQrCode = function() {
+      var qrWrapper;
+      qrWrapper = $('[data-qr-code]');
+      return new QRCode(qrWrapper[0], {
+        text: qrWrapper.data('qr-code'),
+        width: 120,
+        height: 120
+      });
+    };
+
+    return GiftCardView;
+
+  })(Backbone.View);
+
+}).call(this);
+
+(function() {
+  $(function() {
+    window.theme = new Site.ThemeView();
+    return theme.render();
+  });
+
+}).call(this);

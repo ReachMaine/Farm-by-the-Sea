@@ -1,0 +1,74 @@
+{% assign item = product %}
+{% if template contains 'search' %}
+  {% assign item = item %}
+{% elsif template contains 'product' %}
+  {% assign item = prod %}
+{% endif %}
+
+{% if settings.collection-stock-level-overlay and item.available %}
+  {% assign total = 0 %}
+  {% assign threshold = settings.collection-stock-level-overlay-threshold | times: 1 %}
+  {% assign infinity = false %}
+  {% for variant in item.variants %}
+    {% if variant.inventory_management == null %}
+      {% assign infinity = true %}
+    {% elsif variant.inventory_management == '' %}
+      {% assign infinity = true %}
+    {% elsif infinity == false %}
+      {% assign total = total | plus: variant.inventory_quantity %}
+    {% endif %}
+  {% endfor %}
+  {% assign stockText = 'collections.product.stock_level_overlay' | t | replace: '{NUM}', total %}
+{% endif %}
+
+<article class="product-list-item" id="product-list-item-{{ item.id }}">
+
+  <figure class="product-list-item-thumbnail">
+
+    <a href="{{ item.url | within: collection }}">
+      <img src="{{ item | img_url: 'grande' }}" alt="{{ item.featured_image.alt | escape }}" />
+    </a>
+
+    {% if item.price_varies %}
+      <span class="price">
+        {% if item.price_varies %}
+          {{ 'products.product.from' | t }}
+        {% endif %}
+        <span class="money">
+          {{ item.price_min | money }}
+        </span>
+      </span>
+    {% else %}
+      {% if item.compare_at_price_min > item.price_min %}
+        <span class="on-sale">{{ 'products.product.on_sale' | t }}</span>
+        <span class="money price">
+          {{ item.price_min | money }}
+        </span>
+      {% else %}
+        <span class="money price">
+          {{ item.price_min | money }}
+        </span>
+      {% endif %}
+    {% endif %}
+
+    {% if item.available %}
+      {% if settings.collection-stock-level-overlay and infinity == false and total < threshold %}
+        <span class="stock-left">{{ stockText }}</span>
+      {% endif %}
+    {% else %}
+      <span class="sold-out">
+        {{ 'products.product.sold_out' | t }}
+      </span>
+    {% endif %}
+
+  </figure>
+
+  <h1 class="product-list-title">
+    <a href="{{ item.url | within: collection }}">{{ item.title }}</a>
+  </h1>
+
+  {% if settings.product-quick-shop %}
+    {% include 'quick-shop' %}
+  {% endif %}
+
+</article>

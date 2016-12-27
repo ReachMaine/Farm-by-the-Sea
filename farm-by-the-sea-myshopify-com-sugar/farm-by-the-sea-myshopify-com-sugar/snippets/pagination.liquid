@@ -1,0 +1,31 @@
+{% if paginate.previous or paginate.next %}
+  <div class="pagination">
+
+    {% if paginate.previous %}
+      <a class="previous" href="{{ paginate.previous.url }}">&#xe613;</a>
+    {% else %}
+      <span class="previous disabled">&#xe613;</span>
+    {% endif %}
+
+    <div class="numbered-paging">
+      {% for part in paginate.parts %}
+        {% if part.is_link %}
+          <a href="{{ part.url }}">{{ part.title }}</a>
+        {% else %}
+          {% if part.title == '&hellip;' %}
+            <span class="ellipsis">{{ part.title }}</span>
+          {% else %}
+            <span class="active">{{ part.title }}</span>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if paginate.next %}
+      <a class="next" href="{{ paginate.next.url }}">&#xe614;</a>
+    {% else %}
+      <span class="next disabled">&#xe614;</span>
+    {% endif %}
+
+  </div>
+{% endif %}

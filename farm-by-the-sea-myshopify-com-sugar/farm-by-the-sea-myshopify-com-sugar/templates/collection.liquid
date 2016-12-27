@@ -1,0 +1,137 @@
+{% assign productsPerPage = settings.collection-products-number-of-rows | times: 2 %}
+<h1 class="page-title">{{ collection.title }}</h1>
+
+{% if settings.collection-image and collection.image %}
+  <figure class="collection-template-image">
+    {{ collection.image | img_url: '1024x1024' | img_tag }}
+  </figure>
+{% endif %}
+
+{% paginate collection.products by productsPerPage %}
+
+<div class="collection-list">
+
+  {% if collection.description != blank %}
+    <div class="collection-description rte">
+      {{ collection.description }}
+    </div>
+  {% endif %}
+
+  {% if settings.collection-filtering or settings.collection-sorting %}
+    <div class="collection-viewing-parameters" data-url="{{ collection.handle }}">
+
+      <h3>{{ 'collections.collection.filter_collection' | t }}</h3>
+
+      <div class="parameters-container">
+
+        {% if linklists.tag-filters != blank and linklists.tag-filters.links != blank %}
+          {% for linkSet in linklists.tag-filters.links %}
+            {% if linkSet.type == "collection_link" %}
+
+              {% assign linkTitle = linkSet.title %}
+              {% assign id = linkSet.handle %}
+              {% assign properties = linkSet.url | split: "/" %}
+              {% assign collectionHandle = properties[2] %}
+              {% assign linkTags = properties[3] | split: "+" %}
+
+              {% if collectionHandle == collection.handle or collectionHandle == "all" %}
+
+                {% assign foundFilterGroup = false %}
+                {% for linkTag in linkTags %}
+                  {% if collection.all_tags contains linkTag  %}
+                    {% assign foundFilterGroup = true %}
+                  {% endif %}
+                {% endfor %}
+
+                {% if foundFilterGroup %}
+                  <div class="collection-tag-filter filter-section">
+                    <p class="filter-title">{{ linkTitle }}</p>
+                    {% for linkTag in linkTags %}
+
+                      {% assign collectionTags = collection.all_tags | handle %}
+                      {% assign tagHandle = linkTag | handle %}
+
+                      {% assign foundTag = false %}
+                      {% for currentTag in current_tags %}
+                        {% assign currentTagHandle = currentTag | handle %}
+                        {% if tagHandle == currentTagHandle %}
+                          {% assign foundTag = true %}
+                        {% endif %}
+                      {% endfor %}
+
+                      {% if collection.all_tags contains linkTag %}
+                        <label>
+                          <input type="checkbox" data-handle="{{ linkTag }}" {% if foundTag %}checked{% endif %}>
+                          {{ linkTag | replace: "-", " " }}
+                        </label>
+                      {% endif %}
+
+                    {% endfor %}
+                  </div>
+                {% endif %}
+
+              {% endif %}
+
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+
+        {% if settings.collection-sorting %}
+          <div class="collection-sorting filter-section">
+            <div class="selector-wrapper">
+
+              {% assign sortHandles = "manual|price-ascending|price-descending|title-ascending|title-descending|created-ascending|created-descending|best-selling" | split: "|" %}
+              {% capture sortTitles %}{{ 'collections.collection_sorting.manual' | t }}|{{ 'collections.collection_sorting.price_ascending' | t }}|{{ 'collections.collection_sorting.price_descending' | t }}|{{ 'collections.collection_sorting.title_ascending' | t }}|{{ 'collections.collection_sorting.title_descending' | t }}|{{ 'collections.collection_sorting.created_ascending' | t }}|{{ 'collections.collection_sorting.created_descending' | t }}|{{ 'collections.collection_sorting.best_selling' | t }}{% endcapture %}
+              {% assign sortTitles = sortTitles | split: "|" %}
+
+              {% for handle in sortHandles %}
+                {% if collection.sort_by == blank and collection.default_sort_by == handle %}
+                  {% assign currentTitle = sortTitles[forloop.index0] %}
+                {% elsif collection.sort_by == handle %}
+                  {% assign currentTitle = sortTitles[forloop.index0] %}
+                {% endif %}
+              {% endfor %}
+
+              <label class="selected-text">{{ 'collections.collection_sorting.title' | t }} <strong>{{ currentTitle }}</strong></label>
+              <select>
+                {% for handle in sortHandles %}
+                  {% if collection.sort_by == blank and collection.default_sort_by == handle %}
+                    <option value="{{ handle }}" selected="selected">{{ sortTitles[forloop.index0] }}</option>
+                  {% elsif collection.sort_by == handle %}
+                    <option value="{{ handle }}" selected="selected">{{ sortTitles[forloop.index0] }}</option>
+                  {% else %}
+                    <option value="{{ handle }}">{{ sortTitles[forloop.index0] }}</option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        {% endif %}
+
+      </div>
+
+    </div>
+  {% endif %}
+
+  <div class="collection-products">
+    <div class="double-wrapper">
+      {% for product in collection.products %}
+        {% include 'product-list-item' %}
+        {% unless forloop.last %}
+          {% cycle '', '</div><div class="double-wrapper">' %}
+        {% endunless %}
+      {% else %}
+        <p class="empty">{{ 'collections.collection.empty' | t }}</p>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+{% include 'pagination' %}
+
+{% if settings.subscribe-show-listings %}
+  {% include 'newsletter' %}
+{% endif %}
+
+{% endpaginate %}

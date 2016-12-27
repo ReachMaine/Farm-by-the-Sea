@@ -1,0 +1,30 @@
+{% if settings.featured-products-collection != blank %}
+
+  <section class="featured-products">
+
+    {% if settings.featured-products-section-title != blank %}
+      <h2 class="section-title">{{ settings.featured-products-section-title }}</h2>
+    {% endif %}
+
+    <div class="featured-products-list">
+      <div class="double-wrapper">
+        {% for product in collections[settings.featured-products-collection].products limit: settings.featured-products-limit %}
+          {% include 'product-list-item' %}
+          {% unless forloop.last %}
+            {% cycle '', '</div><div class="double-wrapper">' %}
+          {% endunless %}
+        {% endfor %}
+      </div>
+    </div>
+
+  </section>
+
+{% else %}
+
+  <section class="onboarding">
+    <h2>{{ 'onboarding.featured_products.title' | t }}</h2>
+    <p>{{ 'onboarding.featured_products.subtitle' | t }}</p>
+    <a href="/admin/themes/{{ theme.id }}/editor" target="_blank">{{ 'onboarding.general.settings_page_link' | t }}</a>
+  </section>
+
+{% endif %}

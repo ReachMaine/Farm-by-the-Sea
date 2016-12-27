@@ -1,0 +1,44 @@
+{% assign collectionCount = 0 %}
+{% assign featuredCollectionSlots = 'featured-collection-1|featured-collection-2|featured-collection-3|featured-collection-4' | split: "|" %}
+{% assign featuredCollections = "" %}
+
+{% for collectionSlot in featuredCollectionSlots %}
+  {% assign currentCollection = settings[collectionSlot] %}
+  {% if collections[currentCollection] != blank %}
+    {% capture featuredCollections %}{{ featuredCollections }}{% if forloop.index != 1 and forloop.index != featuredCollectionSlots.length %}|{% endif %}{{collectionSlot}}{% endcapture %}
+  {% endif %}
+{% endfor %}
+
+{% if featuredCollections != blank %}
+
+  {% assign featuredCollections = featuredCollections | split: "|" %}
+
+  <section class="featured-collections">
+
+    {% if settings.featured-collections-section-title != blank %}
+      <h2 class="section-title">{{ settings.featured-collections-section-title }}</h2>
+    {% endif %}
+
+    <div class="collections-list">
+
+      {% for currentCollection in featuredCollections %}
+        {% assign collection = settings[currentCollection] %}
+        {% assign collection = collections[collection] %}
+
+        {% include 'collection-list-item' %}
+      {% endfor %}
+
+    </div>
+
+  </section>
+
+{% else %}
+
+  <section class="onboarding">
+    <h2>{{ 'onboarding.featured_collections.title' | t }}</h2>
+    <p>{{ 'onboarding.featured_collections.subtitle' | t }}</p>
+    <a href="/admin/themes/{{ theme.id }}/editor" target="_blank">{{ 'onboarding.general.settings_page_link' | t }}</a>
+  </section>
+
+{% endif %}
+

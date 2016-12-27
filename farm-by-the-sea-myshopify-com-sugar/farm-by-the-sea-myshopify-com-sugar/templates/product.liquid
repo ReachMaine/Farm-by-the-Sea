@@ -1,0 +1,116 @@
+{% assign variant = product.selected_or_first_available_variant %}
+
+<div class="product-wrap" itemscope itemtype="http://schema.org/Product" data-product-id="{{ product.id }}">
+
+  <meta itemprop="url" content="{{ shop.url }}{{ product.url }}">
+  <meta itemprop="image" content="{{ product | img_url: 'grande' }}">
+
+  {% if product.images != blank %}
+    <div class="product-slideshow">
+
+      {% for image in product.images %}
+        <div class="slideshow-slide {% if settings.product-enable-zoom %}zoom-enabled{% endif %} {% if image == variant.image %}initial-slide{% endif %}">
+          <img alt="{{ image.alt | escape }}" src="{{ image | img_url: 'master' }}">
+        </div>
+      {% endfor %}
+
+      {% if product.images.size > 1 %}
+        <div class="slideshow-pagers">
+          {% for image in product.images %}
+            <div class="pager">
+              <img alt="{{ image.alt | escape }}" data-high-res="{{ image | img_url: '1024x1024' }}" src="{{ image | img_url: 'compact' }}">
+            </div>
+          {% endfor %}
+        </div>
+
+        <span class="slide-navigation previous">&#xe61e;</span>
+        <span class="slide-navigation next">&#xe61f;</span>
+      {% endif %}
+
+    </div>
+  {% endif %}
+
+  <div class="product-title-price">
+    <h1 class="title" itemprop="name">{{ product.title }}</h1>
+
+    <a class="brand" href="{{ product.vendor | url_for_vendor }}">{{ product.vendor }}</a>
+
+    <p class="price" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+      {% if product.available %}
+        <link itemprop="availability" href="http://schema.org/InStock">
+      {% else %}
+        <link itemprop="availability" href="http://schema.org/OutOfStock">
+      {% endif %}
+
+      <span class="price-minimum money">
+        {{ variant.price | money }}
+      </span>
+
+      {% if variant.compare_at_price > variant.price %}
+        <span class="price-compare money">
+          {{ variant.compare_at_price | money }}
+        </span>
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="product-actions">
+    <form action="/cart/add" method="post">
+
+      {% if product.variants[0].title == 'Default Title' %}
+        <input type="hidden" name="id" value="{{ product.variants.first.id }}" />
+      {% else %}
+        <div class="product-options">
+          <select class="product-variants" name="id" id="product-variants-{{ product.id }}">
+            {% for variant in product.variants %}
+              <option {% if variant == product.selected_or_first_available_variant %} selected="selected" {% endif %} value="{{ variant.id }}" data-sku="{{ variant.sku }}">{{ variant.title }} - {{ variant.price | money }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
+
+      <div id="infiniteoptions-container"></div>
+      <div id="uploadery-container"></div>
+
+      {% if settings.product-enable-quantity %}
+        <div class="quantity-container">
+          <label class="quantity-label" for="quantity">{{ 'cart.general.quantity' | t }}</label>
+          <input type="text" id="quantity" name="quantity" value="1" />
+        </div>
+      {% endif %}
+
+      <div class="add-to-cart">
+        {% if variant.available %}
+          <input type="submit" value="{{ 'products.product.add_to_cart' | t }}" />
+        {% else %}
+          <input type="button" class="disabled" disabled="disabled" value="{{ 'products.product.sold_out' | t }}" />
+        {% endif %}
+      </div>
+
+    </form>
+  </div>
+
+  <div class="product-more">
+    {% if product.description != blank %}
+      <div class="description rte" itemprop="description">
+        {{ product.description }}
+      </div>
+    {% endif %}
+
+    {% include "share-buttons" %}
+  </div>
+
+</div>
+
+{% if settings.enable-related-products %}
+  {% include 'related-products' %}
+{% endif %}
+
+{% if settings.subscribe-show-products %}
+  {% include 'newsletter' %}
+{% endif %}
+
+<script>
+  Theme.product = {{ product | json }};
+  Theme.firstVariant = {{ product.selected_or_first_available_variant.id | json }};
+</script>

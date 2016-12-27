@@ -1,0 +1,25 @@
+{% if settings.enable-featured-collections %}
+  {% include 'featured-collections' %}
+{% endif %}
+
+{% if settings.enable-featured-products %}
+  {% include 'featured-products' %}
+{% endif %}
+
+{% if settings.enable-featured-blog %}
+  {% include 'featured-blog' %}
+{% endif %}
+
+{% if settings.enable-instagram-widget %}
+  {% include 'instagram-widget' %}
+{% endif %}
+
+{% if settings.enable-twitter-widget %}
+  {% include 'twitter-widget' %}
+{% endif %}
+
+{% if settings.subscribe-show-home %}
+  {% include 'newsletter' %}
+{% endif %}
+<p style="text-align:center"><span style="font-weight:bold">Delivery available locally for orders of $15.00 or more!</span><br>
+  Place your order for local delivery by calling (207)667-9595.</p>

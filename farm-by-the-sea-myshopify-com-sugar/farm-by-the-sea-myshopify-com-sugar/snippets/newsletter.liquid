@@ -1,0 +1,23 @@
+<form class="newsletter-subscribe" action="{{ settings.subscribe-action-url }}" method="post" name="{% if settings.subscribe-platform == 'mailchimp' %}mc-embedded-subscribe-form{% endif %}" target="_blank">
+
+  {% if settings.subscribe-title != blank %}
+    <h2 class="section-title">{{ settings.subscribe-title }}</h2>
+  {% endif %}
+
+  {% if settings.subscribe-blurb != blank %}
+    <p class="subscribe-blurb">{{ settings.subscribe-blurb }}</p>
+  {% endif %}
+
+  <div class="input-container">
+    <div class="email-address">
+      {% if settings.subscribe-platform == 'mailchimp' %}
+        <input class="subscribe-email" name="EMAIL" type="email" placeholder="{{ 'general.pages.email_placeholder' | t }}" value="">
+      {% else if settings.subscribe-platform == 'campaign-monitor' %}
+        <input id="fieldEmail" class="subscribe-email" name="{{ settings.subscribe-cm-name }}" type="email" placeholder="{{ 'general.pages.email_placeholder' | t }}" required />
+      {% endif %}
+    </div>
+
+    <input class="submit" name="subscribe" type="submit" value="{{ 'general.pages.email_subscribe' | t }}">
+  </div>
+
+</form>

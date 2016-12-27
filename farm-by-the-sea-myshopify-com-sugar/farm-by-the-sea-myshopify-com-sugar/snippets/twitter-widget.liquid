@@ -1,0 +1,18 @@
+{% if settings.twitter-widget-id != blank %}
+
+  <div class="twitter-widget">
+    {% if settings.twitter-widget-title != blank %}
+      <h3 class="section-title">{{ settings.twitter-widget-title }}</h3>
+    {% endif %}
+    <div class="twitter-tweet"></div>
+  </div>
+
+{% else %}
+
+  <section class="onboarding">
+    <h2>{{ 'onboarding.twitter_widget.title' | t }}</h2>
+    <p>{{ 'onboarding.twitter_widget.subtitle' | t }}</p>
+    <a href="/admin/themes/{{ theme.id }}/settings" target="_blank">{{ 'onboarding.general.settings_page_link' | t }}</a>
+  </section>
+
+{% endif %}

@@ -1,0 +1,66 @@
+{% assign index = false %}
+{% if template == 'blog' %}{% assign index = true %}{% endif %}
+
+{% assign hasPostInfo = false %}
+{% unless index %}
+  {% if settings.blog-show-author or settings.blog-show-tags and article.tags.size > 0 %}
+    {% assign hasPostInfo = true %}
+  {% endif %}
+{% endunless %}
+
+<article class="blog-post {% if hasPostInfo %}has-post-info{% endif %}">
+
+  <span class="publish-date">{{ article.published_at | date: format: "full_date" }}</span>
+
+  {% if index %}
+    <h1 class="article-title"><a href="{{ article.url }}">{{ article.title }}</a></h1>
+  {% else %}
+    <h1 class="page-title">{{ article.title }}</h1>
+  {% endif %}
+
+  {% if article.image %}
+    {% if index %}
+      <a href="{{ article.url }}">
+        <img src="{{ article.image | img_url: '1024x1024' }}" alt="{{ article.title }}">
+      </a>
+    {% else %}
+        <img src="{{ article.image | img_url: '1024x1024' }}" alt="{{ article.title }}">
+    {% endif %}
+  {% endif %}
+
+  <div class="rte post-content">
+    {% if index %}
+      {{ article.excerpt_or_content }}
+      <p><a href="{{ article.url }}">{{ 'blogs.article_item.continue_reading' | t }}</a></p>
+    {% else %}
+      {{ article.content }}
+    {% endif %}
+  </div>
+
+  {% unless index %}
+    {% include 'share-buttons' %}
+  {% endunless %}
+
+  {% if hasPostInfo %}
+    <div class="post-info">
+
+      {% if settings.blog-show-author %}
+        <div class="post-author">
+          <img class="avatar" src="//www.gravatar.com/avatar/{{ article.user.email | remove: ' ' | strip_newlines | downcase | md5 }}?s=100&d=www.gravatar.com/avatar/?d=mm" />
+          <p class="written-by"><span class="label">{{ 'blogs.article_item.written_by' | t }}</span>{{ article.author }}</p>
+        </div>
+      {% endif %}
+
+      {% if settings.blog-show-tags and article.tags.size > 0 %}
+        <div class="post-tags">
+          <span class="label">{{ 'blogs.article_item.tagged_with' | t }}</span>
+          {% for tag in article.tags %}
+            <a href="{{ blog.url }}/tagged/{{ tag | handle }}">{{ tag }}</a>{% unless forloop.last %},&nbsp;{% endunless %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+    </div>
+  {% endif %}
+
+</article>

@@ -1,0 +1,169 @@
+{% capture fontSettings %}{{ settings.store-title-font }}|{{ settings.body-font }}|{{ settings.heading-font }}|{{ settings.meta-font }}|{{ settings.button-font }}{% endcapture %}
+{% assign fontSettings = fontSettings | split: "|" %}
+
+{% assign requestString = "" %}
+
+{% for fontSetting in fontSettings %}
+  {% case fontSetting %}
+
+    {% when "Arimo, sans-serif" %}
+      {% unless requestString contains "Arimo" %}
+        {% assign requestString = requestString | append: "Arimo:400,700,400italic,700italic|" %}
+      {% endunless %}
+
+    {% when "Karla, sans-serif" %}
+      {% unless requestString contains "Karla" %}
+        {% assign requestString = requestString | append: "Karla:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "Lato, sans-serif" %}
+      {% unless requestString contains "Lato" %}
+        {% assign requestString = requestString | append: "Lato:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "Montserrat, sans-serif" %}
+      {% unless requestString contains "Montserrat" %}
+        {% assign requestString = requestString | append: "Montserrat:400,700|" %}
+      {% endunless %}
+
+    {% when "'Open Sans', sans-serif" %}
+      {% unless requestString contains "Open+Sans" %}
+        {% assign requestString = requestString | append: "Open+Sans:400italic,600italic,700italic,400,600,700|" %}
+      {% endunless %}
+
+    {% when "'PT Sans', sans-serif" %}
+      {% unless requestString contains "PT+Sans" %}
+        {% assign requestString = requestString | append: "PT+Sans:400italic,700italic,400,700|" %}
+        {% endunless %}
+
+    {% when "Raleway, sans-serif" %}
+      {% unless requestString contains "Raleway" %}
+        {% assign requestString = requestString | append: "Raleway:400,700|" %}
+      {% endunless %}
+
+    {% when "Roboto, sans-serif" %}
+      {% unless requestString contains "Roboto" %}
+        {% assign requestString = requestString | append: "Roboto:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "'Source Sans Pro', sans-serif" %}
+      {% unless requestString contains "Source+Sans+Pro" %}
+        {% assign requestString = requestString | append: "Source+Sans+Pro:400italic,600italic,700italic,400,600,700|" %}
+      {% endunless %}
+
+    {% when "'Archivo Narrow', sans-serif" %}
+      {% unless requestString contains "Archivo+Narrow" %}
+        {% assign requestString = requestString | append: "Archivo+Narrow:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "'Fjalla One', sans-serif" %}
+      {% unless requestString contains "Fjalla+One" %}
+        {% assign requestString = requestString | append: "Fjalla+One:400|" %}
+      {% endunless %}
+
+    {% when "Oswald, sans-serif" %}
+      {% unless requestString contains "Oswald" %}
+        {% assign requestString = requestString | append: "Oswald:400,700|" %}
+      {% endunless %}
+
+    {% when "'Roboto Condensed', sans-serif" %}
+      {% unless requestString contains "Roboto+Condensed" %}
+        {% assign requestString = requestString | append: "Roboto+Condensed:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "'Titillium Web', sans-serif" %}
+      {% unless requestString contains "Titillium+Web" %}
+        {% assign requestString = requestString | append: "Titillium+Web:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "Alegreya, serif" %}
+      {% unless requestString contains "Alegreya" %}
+        {% assign requestString = requestString | append: "Alegreya:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "'Crimson Text', serif" %}
+      {% unless requestString contains "Crimson+Text" %}
+        {% assign requestString = requestString | append: "Crimson+Text:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "'Droid Serif', serif" %}
+      {% unless requestString contains "Droid+Serif" %}
+        {% assign requestString = requestString | append: "Droid+Serif:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "Lora, serif" %}
+      {% unless requestString contains "Lora" %}
+        {% assign requestString = requestString | append: "Lora:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "Merriweather, serif" %}
+      {% unless requestString contains "Merriweather" %}
+        {% assign requestString = requestString | append: "Merriweather:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "'Noticia Text', serif" %}
+      {% unless requestString contains "Noticia+Text" %}
+        {% assign requestString = requestString | append: "Noticia+Text:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "'Noto Serif', serif" %}
+      {% unless requestString contains "Noto+Serif" %}
+        {% assign requestString = requestString | append: "Noto+Serif:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "'Playfair Display', serif" %}
+      {% unless requestString contains "Playfair+Display" %}
+        {% assign requestString = requestString | append: "Playfair+Display:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "'PT Serif', serif" %}
+      {% unless requestString contains "PT+Serif" %}
+        {% assign requestString = requestString | append: "PT+Serif:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "Volkhov, serif" %}
+      {% unless requestString contains "Volkhov" %}
+        {% assign requestString = requestString | append: "Volkhov:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "Vollkorn, serif" %}
+      {% unless requestString contains "Vollkorn" %}
+        {% assign requestString = requestString | append: "Vollkorn:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "Arvo, serif" %}
+      {% unless requestString contains "Arvo" %}
+        {% assign requestString = requestString | append: "Arvo:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "Bitter, serif" %}
+      {% unless requestString contains "Bitter" %}
+        {% assign requestString = requestString | append: "Bitter:400italic,400,700|" %}
+      {% endunless %}
+
+    {% when "'Josefin Slab', serif" %}
+      {% unless requestString contains "Josefin+Slab" %}
+        {% assign requestString = requestString | append: "Josefin+Slab:400italic,700italic,400,700|" %}
+      {% endunless %}
+
+    {% when "Kreon, serif" %}
+      {% unless requestString contains "Kreon" %}
+        {% assign requestString = requestString | append: "Kreon:400,700|" %}
+      {% endunless %}
+
+    {% when "'Roboto Slab', serif" %}
+      {% unless requestString contains "Roboto+Slab" %}
+        {% assign requestString = requestString | append: "Roboto+Slab:400,700|" %}
+      {% endunless %}
+
+    {% when "Rokkitt, serif" %}
+      {% unless requestString contains "Rokkitt" %}
+        {% assign requestString = requestString | append: "Rokkitt:400,700|" %}
+      {% endunless %}
+
+  {% endcase %}
+{% endfor %}
+
+{% assign requestString = requestString | split: "|" | join: "|" %}
+
+<link href="//fonts.googleapis.com/css?family={{ requestString }}" rel="stylesheet" type="text/css">

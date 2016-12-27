@@ -1,0 +1,52 @@
+{% if blogs[settings.featured-blog].articles.size > 0 %}
+
+  <section class="featured-blog">
+
+      {% if settings.featured-blog-section-title != blank %}
+        <h2 class="section-title">{{ settings.featured-blog-section-title }}</h2>
+      {% endif %}
+
+      <div class="featured-blog-post-list {{ settings.featured-blog-hover-style }}">
+        <div class="double-wrapper">
+          {% for post in blogs[settings.featured-blog].articles limit: settings.featured-blog-posts-limit %}
+              <article class="featured-blog-post">
+                <div class="post-inner">
+                  <span class="publish-date">{{ post.published_at | date: "%B %-d, %Y" }}</span>
+                  <h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
+
+                  {% if post.image %}
+                    <a href="{{ post.url }}" class="post-image">
+                      <img src="{{ post.image | img_url: '1024x1024' }}" alt="{{ post.title }}">
+                    </a>
+                  {% endif %}
+
+                  <div class="post-excerpt rte">
+                    {% if post.excerpt_or_content contains "<img" %}
+                      {% assign imageSrc = post.excerpt_or_content | split: 'src="' %}
+                      {% assign imageSrc = imageSrc[1] | split: '"' | first %}
+                      {{ imageSrc | img_tag }}
+                    {% endif %}
+                    {{ post.excerpt_or_content | strip_html | truncatewords: 21 }}
+                  </div>
+
+                  <a class="more-link" href="{{ post.url }}">{{ 'blogs.article_item.continue_reading' | t }}</a>
+                </div>
+              </article>
+              {% unless forloop.last %}
+                {% cycle "", "</div><div class='double-wrapper'>" %}
+              {% endunless %}
+          {% endfor %}
+        </div>
+      </div>
+
+  </section>
+
+{% else %}
+
+  <section class="onboarding">
+    <h2>{{ 'onboarding.featured_blog.title' | t }}</h2>
+    <p>{{ 'onboarding.featured_blog.subtitle' | t }}</p>
+    <a href="/admin/themes/{{ theme.id }}/editor" target="_blank">{{ 'onboarding.general.settings_page_link' | t }}</a>
+  </section>
+
+{% endif %}

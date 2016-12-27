@@ -1,0 +1,36 @@
+{% assign image = false %}
+{% if template contains 'article' or template contains 'blog' %}
+  {% capture permalinkURL %}{{ shop.url }}{{ article.url }}{% endcapture %}
+  {% assign description = article.title | escape %}
+  {% if article.image %}
+    {% assign image = article.image | img_url: '1024x1024' %}
+  {% endif %}
+{% elsif template contains 'product' %}
+  {% capture permalinkURL %}{{ shop.url }}{{ product.url }}{% endcapture %}
+  {% assign description = product.title | escape %}
+  {% assign image = product.featured_image | img_url: '1024x1024' %}
+{% endif %}
+
+{% if settings.share-widget-facebook or settings.share-widget-twitter or settings.share-widget-google-plus or settings.share-widget-pinterest %}
+  <div class="share-buttons">
+
+    {% if settings.share-widget-facebook %}
+      <a target="_blank" href="//www.facebook.com/sharer.php?u={{ permalinkURL }}" class="share-facebook share-button">Share</a>
+    {% endif %}
+
+    {% if settings.share-widget-twitter %}
+      <a target="_blank" href="//twitter.com/share?url={{ permalinkURL }}" class="share-twitter share-button">Tweet</a>
+    {% endif %}
+
+    {% if settings.share-widget-pinterest %}
+      {% if image %}
+        <a target="_blank" href="//pinterest.com/pin/create/button/?url={{ permalinkURL }}&amp;media=http:{{ image }}&amp;description={{ description }}" class="share-pinterest share-button">Pin it</a>
+      {% endif %}
+    {% endif %}
+
+    {% if settings.share-widget-google-plus %}
+      <a target="_blank" href="//plus.google.com/share?url={{ permalinkURL }}" class="share-google share-button">+1</a>
+    {% endif %}
+
+  </div>
+{% endif %}

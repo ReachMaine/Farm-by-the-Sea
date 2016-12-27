@@ -1,0 +1,81 @@
+<div class="home-slideshow" data-autoplay="{{ settings.slideshow-autoplay | default: false }}" data-delay="{{ settings.slideshow-autoplay-delay | default: 5 }}">
+
+  {% assign slides = "slide-1|slide-2|slide-3|slide-4|slide-5" | split: "|" %}
+  {% assign slideCount = 0 %}
+  {% for slide in slides %}
+    {% capture enabled %}{{slide}}-enabled{% endcapture %}
+    {% if settings[enabled] %}
+      {% assign slideCount = slideCount | plus: 1 %}
+    {% endif %}
+  {% endfor %}
+
+  {% if slideCount > 0 %}
+
+    <div class="slideshow-slides">
+      {% for slide in slides %}
+
+        {% capture enabled %}{{slide}}-enabled{% endcapture %}
+        {% capture title %}{{slide}}-title{% endcapture %}
+        {% capture subtitle %}{{slide}}-subtitle{% endcapture %}
+        {% capture url %}{{slide}}-url{% endcapture %}
+        {% capture colorText %}{{slide}}-color-text{% endcapture %}
+        {% capture colorOverlay %}{{slide}}-color-overlay{% endcapture %}
+
+        {% if settings[enabled] %}
+          <div id="{{slide}}" class="slideshow-slide {{slide}} text-{{ settings[colorText] }} overlay-{{ settings[colorOverlay] }}">
+
+            <div class="slide-image" style="background-image:url('{{ slide | append:'-image.jpg' | asset_url }}')"></div>
+
+            <div class="slide-content">
+              {% if settings[title] != blank %}
+                <h3>
+                  {% if settings[url] != blank %}
+                    <a href="{{ settings[url] }}">{{ settings[title] }}</a>
+                  {% else %}
+                    {{ settings[title] }}
+                  {% endif %}
+                </h3>
+              {% endif %}
+
+              {% if settings[subtitle] != blank %}
+                <p class="slide-subtitle">
+                  {% if settings[url] != blank %}
+                    <a href="{{ settings[url] }}">{{ settings[subtitle] }}</a>
+                  {% else %}
+                    {{ settings[subtitle] }}
+                  {% endif %}
+                </p>
+              {% endif %}
+            </div>
+
+          </div>
+        {% endif %}
+
+      {% endfor %}
+    </div>
+
+    {% if slideCount > 1 %}
+      <span class="slideshow-navigation previous-slide"></span>
+      <span class="slideshow-navigation next-slide"></span>
+    {% endif %}
+
+  {% else %}
+
+    <div class="slideshow-slides">
+      <div id="slide-1" class="slideshow-slide no-slide slide-1 text-light overlay-light">
+
+        <div class="slide-image"></div>
+
+        <div class="slide-content">
+          <h3>{{ 'onboarding.slideshow.title' | t }}</h3>
+          <p class="slide-subtitle">
+            <a href="/admin/themes/{{ theme.id }}/editor">{{ 'onboarding.slideshow.subtitle' | t }}</a>
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+  {% endif %}
+
+</div>

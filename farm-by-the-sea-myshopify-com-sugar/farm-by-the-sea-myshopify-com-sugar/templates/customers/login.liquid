@@ -1,0 +1,69 @@
+<h1 class="page-title">{{ 'customers.login.header' | t }}</h1>
+
+<div class="customer-login toggleable-form">
+  {% form 'customer_login' %}
+
+    {% if form.errors %}
+      <p class="error-message banner">{{ 'customers.login.error' | t }}</p>
+    {% endif %}
+
+    <div class="input-wrapper">
+      <label>{{ 'general.pages.email' | t }}</label>
+      <input type="text" placeholder="{{ 'general.pages.email' | t }}" value="{{ form.email }}" name="customer[email]">
+    </div>
+
+    <div class="input-wrapper">
+      <label>{{ 'general.pages.password' | t }}</label>
+      <input type="password" placeholder="{{ 'general.pages.password' | t }}" name="customer[password]">
+    </div>
+
+    <div class="input-wrapper submit-area">
+      <input type="submit" value="{{ 'customers.login.submit' | t }}">
+      <p class="toggle-forgetfulness"><span>{{ 'customers.login.forgot_your_password' | t }}</span></p>
+    </div>
+
+  {% endform %}
+</div>
+
+<div class="recover-password toggleable-form hidden">
+  {% form 'recover_customer_password' %}
+
+    <p>{{ 'customers.login.recover_password_message' | t }}</p>
+
+    {% if form.posted_successfully? %}
+      <p class="successful-reset">{{ 'customers.login.message' | t }}</p>
+      <span class="reset-check" data-successful-reset="true"></span>
+    {% endif %}
+
+    <div class="input-wrapper">
+      <label>{{ 'general.pages.email' | t }}</label>
+      <input type="text" placeholder="{{ 'general.pages.email' | t }}" value="{{ form.email }}" name="email" class="{% if form.errors %}error{% endif %}">
+
+      {% if form.errors %}
+        <p class="error-message">{{ form.errors.messages['form'] }}</p>
+      {% endif %}
+    </div>
+
+    <div class="input-wrapper submit-area">
+      <input type="submit" value="{{ 'customers.reset_password.submit' | t }}">
+      <p class="toggle-forgetfulness"><span>{{ 'customers.general.cancel' | t }}</span></p>
+    </div>
+
+  {% endform %}
+</div>
+
+{% if shop.checkout.guest_login %}
+  <div class="guest-checkout">
+    <h3 class="section-title">{{ 'customers.guest_checkout.header' | t }}</h3>
+    {% form 'guest_login' %}
+      <p>{{ 'customers.guest_checkout.header' | t }}</p>
+      <input type="submit" value="{{ 'customers.guest_checkout.submit' | t }}" />
+    {% endform %}
+  </div>
+{% else %}
+  <div class="new-customer">
+    <h3 class="section-title">{{ 'customers.new_customer.header' | t }}</h3>
+    <p>{{ 'customers.new_customer.message' | t }}</p>
+    <a class="button" href="/account/register">{{ 'customers.register.submit' | t }}</a>
+  </div>
+{% endif %}

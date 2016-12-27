@@ -1,0 +1,14 @@
+{% comment %}
+  Takes each font setting and outputs its selected font, stripping all
+  unnecessary characters and redundant words.
+  Example: heading-pt-sans
+{% endcomment %}
+
+{% assign fontSettings = "store-title-font|body-font|heading-font|meta-font|button-font" | split: "|" %}
+
+{% for setting in fontSettings %}
+  {% assign classPrefix = setting | remove: "font" %}
+  {% assign fontStack = settings[setting] | split: "," %}
+  {% capture classSetting %}{{ fontStack[0] | remove: "'" | strip | replace: " ", "-" | downcase }}{% endcapture %}
+  {{ classPrefix | append: classSetting }}
+{% endfor %}
